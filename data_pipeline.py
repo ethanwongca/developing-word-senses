@@ -19,10 +19,27 @@ from nltk.tokenize import sent_tokenize
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS, TfidfVectorizer
-from transformers import AutoModel, AutoTokenizer
+from matplotlib.patches import FancyArrowPatch
+from mpl_toolkits.mplot3d import proj3d
+from transformers import AutoModelForMaskedLM, AutoTokenizer
 
 # Any mask token a sentences.jsonl may contain (older files were written with MPNet's <mask>)
 MASK_RE = re.compile(r"<mask>|\[MASK\]")
+PEAK_FRAC = 0.5  # a sense emerges when it first reaches this fraction of its peak share (see _emergence)
+
+
+class Arrow3D(FancyArrowPatch):
+    """Arrow drawn in screen space, so the head isn't distorted by unequal axis scales."""
+
+    def __init__(self, start, end, **kwargs):
+        super().__init__((0, 0), (0, 0), **kwargs)
+        self._start, self._end = start, end
+
+    def do_3d_projection(self, renderer=None):
+        xs, ys, zs = zip(self._start, self._end)
+        xs, ys, zs = proj3d.proj_transform(xs, ys, zs, self.axes.M)
+        self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
+        return min(zs)
 
 
 def _extract_year(args) -> list[str]:
@@ -58,7 +75,8 @@ class DataPipeline:
     @cached_property
     def model(self):
         """Loaded on first use, so plotting on a CPU node doesn't pay for it."""
-        model = AutoModel.from_pretrained(self.model_name).to(self.device).eval()
+        # Masked-LM head included: hidden states give the context vectors, the head gives sense labels
+        model = AutoModelForMaskedLM.from_pretrained(self.model_name).to(self.device).eval()
         return model.half() if self.device == "cuda" else model
 
     def word_dir(self, word: str) -> Path:
@@ -228,6 +246,32 @@ class DataPipeline:
         y = (inertia - inertia[-1]) / (inertia[0] - inertia[-1])
         return max(2, int(ks[np.argmax((1 - x) - y)]))
 
+    def _substitutes(self, sentences, word, n_terms=3, batch_size=64):
+        """
+        What BERT would put in the masked slot, averaged over the sentences: the most readable name for a
+        sense (e.g. 'automobile / truck / motor' vs 'train / wagon / coach' for car). Skips the word itself,
+        word pieces, stop words and anything shorter than 3 letters.
+        """
+        probs = None
+        for i in range(0, len(sentences), batch_size):
+            enc = self.tokenizer([self._window(x) for x in sentences[i:i + batch_size]], padding=True,
+                                 truncation=True, max_length=256, return_tensors="pt").to(self.device)
+            is_mask = enc["input_ids"] == self.tokenizer.mask_token_id
+            rows, first = torch.arange(is_mask.shape[0], device=self.device), is_mask.int().argmax(dim=1)
+            with torch.inference_mode():
+                logits = self.model(**enc).logits[rows, first].float()
+            p = (torch.softmax(logits, dim=-1) * is_mask.any(dim=1, keepdim=True)).sum(dim=0)
+            probs = p if probs is None else probs + p
+        skip = {word.lower(), word.lower() + "s", word.lower() + "es"} | set(ENGLISH_STOP_WORDS)
+        out = []
+        for idx in probs.argsort(descending=True).tolist():
+            tok = self.tokenizer.convert_ids_to_tokens(idx)
+            if tok.isalpha() and len(tok) >= 3 and tok.lower() not in skip:
+                out.append(tok)
+                if len(out) == n_terms:
+                    break
+        return " / ".join(out)
+
     @staticmethod
     def _sense_names(sents, labels, k, n_terms=2):
         """Label each sense with its most distinctive context words (class-based TF-IDF)."""
@@ -329,23 +373,32 @@ class DataPipeline:
         }
 
     @staticmethod
+    def _emergence(share, min_share, peak_frac=PEAK_FRAC):
+        """
+        Per sense (rows of share, one column per period): the first period where it holds at least
+        peak_frac of its own peak share (and >= min_share), and still does in the next period. Relative to
+        the peak because k-means hands every sense a few stray uses in every period: a sense that grows from
+        3% to 40% is dated to when it took off, not to 1860. Returns (present, index of emergence period).
+        """
+        above = share >= np.maximum(min_share, peak_frac * share.max(axis=1, keepdims=True))
+        sustained = above & np.hstack([above[:, 1:], above[:, -1:]])  # last period only needs itself
+        return sustained.any(axis=1), sustained.argmax(axis=1)
+
+    @staticmethod
     def _shares(labels, times, k, min_share):
-        """
-        Share of each sense per period, and its emergence: the first period where it holds >= min_share of
-        uses and still does in the next (k-means hands every sense a few stray early uses, so a blip isn't it).
-        """
+        """Share of each sense per period, and the period each sense emerged (see _emergence)."""
         ts = np.unique(times)
         share = np.array([[np.mean(labels[times == t] == s) for t in ts] for s in range(k)])
-        above = share >= min_share
-        sustained = above & np.hstack([above[:, 1:], above[:, -1:]])  # last period only needs itself
-        emerged = np.array([ts[np.argmax(row)] if row.any() else ts[share[s].argmax()]
-                            for s, row in enumerate(sustained)])
+        present, first = DataPipeline._emergence(share, min_share)
+        emerged = np.where(present, ts[first], ts[share.argmax(axis=1)])
         return ts, share, emerged
 
-    def analyze_word(self, word, periods, states=None, n_senses=None, k_max=8, min_share=0.1,
+    def analyze_word(self, word, periods, states=None, n_senses=None, k_max=10, min_share=0.03, n_pcs=5,
                      concreteness=None, **scan_kwargs) -> Optional[dict]:
         """
-        Following Li et al.: context vectors -> top 2 PCs -> k-means sense clusters in that 2-D space.
+        Following Li et al.: context vectors -> top PCs -> k-means sense clusters in PC space. Clustering uses
+        n_pcs components (Li et al.'s robustness check found 2-10 give similar results; 2 merges new senses
+        into old ones here); the diagrams show PC 1 and PC 2.
         PCA and senses are fitted once on the national sample, then applied to every state, so a sense means
         the same thing (same colour, same number) in every state's diagram. Senses are numbered by emergence.
         """
@@ -353,7 +406,7 @@ class DataPipeline:
         if res is None:
             return None
         emb, sents, times = res["nat"]
-        pca = PCA(n_components=2).fit(emb)
+        pca = PCA(n_components=n_pcs).fit(emb)
         X = pca.transform(emb)
         k = n_senses or self._choose_k(X, k_max)
         km = KMeans(k, n_init=10, random_state=0).fit(X)
@@ -362,12 +415,34 @@ class DataPipeline:
         order = np.lexsort((mean_time, emerged))
         rank = np.empty(k, int)
         rank[order] = np.arange(k)
-        names = self._sense_names(sents, rank[km.labels_], k)
-        if concreteness:
-            names = [f"{n}, conc {self._sense_concreteness([x for x, l in zip(sents, rank[km.labels_]) if l == s], concreteness):.2f}"
-                     for s, n in enumerate(names)]
-        res.update(pca=pca, km=km, rank=rank, k=k, names=names, min_share=min_share)
+        labels = rank[km.labels_]
+        rng = np.random.default_rng(0)
+        members = [np.flatnonzero(labels == s) for s in range(k)]
+        # Label = BERT's substitutes for the masked word over up to 200 of the sense's uses
+        names = [self._substitutes([sents[i] for i in rng.choice(m, min(200, len(m)), replace=False)], word)
+                 for m in members]
+        res.update(pca=pca, km=km, rank=rank, k=k, names=names, min_share=min_share,
+                   context_words=self._sense_names(sents, labels, k, n_terms=6))
         return res
+
+    def write_sense_report(self, res, path, n_examples=6):
+        """Plain-text key to the diagrams: per sense its label, frequent context words, and example uses."""
+        emb, sents, times = res["nat"]
+        X, labels = self._assign(res, emb)
+        c = self._chain(res, emb, times)
+        lines = [f"'{res['word']}': {res['k']} senses (national sample of {len(sents):,} uses)",
+                 "Label = BERT's most likely words for the masked slot in that sense's uses.", ""]
+        for s in range(res["k"]):
+            m = np.flatnonzero(labels == s)
+            # Examples = the uses closest to the sense's centre, i.e. its most typical
+            near = m[np.argsort(np.linalg.norm(X[m] - X[m].mean(axis=0), axis=1))[:n_examples]]
+            lines += [f"Sense {s + 1}: {res['names'][s]}",
+                      f"  emerged: {c['emerged'].get(s, 'never reaches ' + format(res['min_share'], '.0%'))}"
+                      f"   share of sample: {len(m) / len(labels):.0%}",
+                      f"  context words: {res['context_words'][s]}",
+                      "  examples:"]
+            lines += [f"    ({times[i]}) {sents[i][:250]}" for i in near] + [""]
+        Path(path).write_text("\n".join(lines))
 
     @staticmethod
     def _assign(res, emb):
@@ -375,96 +450,119 @@ class DataPipeline:
         X = res["pca"].transform(emb)
         return X, res["rank"][res["km"].predict(X)]
 
-    def _path(self, res, state=None):
-        """The word's mean vector per period (nationally, or in one state) in PC space."""
-        pts = [(t, v) for t, v in sorted(res["overall"].items())] if state is None else \
-              [(t, res["means"][(t, state)]) for t in sorted(res["overall"]) if (t, state) in res["means"]]
-        return [t for t, _ in pts], res["pca"].transform(np.array([v for _, v in pts]))
-
-    def _plot_space(self, ax, res, emb, times, emerged, state=None):
-        """Uses coloured by sense, with the mean-vector path (state solid, national dashed)."""
+    def _chain(self, res, emb, times):
+        """
+        Li et al.'s sense chain for one sample (national or a state), in the shared sense space:
+          present:  senses that take off in this sample (see _emergence)
+          emerged:  the period they take off
+          edges:    each sense linked from the closest (in PC space) sense that emerged before it
+        """
         X, labels = self._assign(res, emb)
-        for s in range(res["k"]):
-            m = labels == s
-            ax.scatter(X[m, 0], X[m, 1], s=3, alpha=0.25, color=COLORS[s % 10],
-                       label=f"{s + 1}. {res['names'][s]} (from {emerged[s]}s)")
-        for st, style in ([(state, "-o"), (None, "--")] if state else [(None, "-o")]):
-            ts, P = self._path(res, st)
-            ax.plot(P[:, 0], P[:, 1], style, color="k", lw=2 if st == state else 1.2, ms=4,
-                    label=None if st == state else "national mean")
-            if st == state:
-                for t, (x, y) in zip(ts, P):
-                    ax.annotate(f"{t}s", (x, y), fontsize=7, xytext=(3, 3), textcoords="offset points")
-        pca = res["pca"]
-        ax.set_xlabel(f"PC 1 ({pca.explained_variance_ratio_[0]:.0%})")
-        ax.set_ylabel(f"PC 2 ({pca.explained_variance_ratio_[1]:.0%})")
-        ax.legend(fontsize=7, markerscale=4, loc="best")
+        ts = np.unique(times)
+        share = np.array([[np.mean(labels[times == t] == s) for t in ts] for s in range(res["k"])])
+        is_present, first = self._emergence(share, res["min_share"])
+        present = [s for s in range(res["k"]) if is_present[s]]
+        emerged = {s: ts[first[s]] for s in present}
+        centroid = {s: X[labels == s].mean(axis=0) for s in present}
+        order = sorted(present, key=lambda s: (emerged[s], s))
+        edges = [(min(order[:i], key=lambda a: np.linalg.norm(centroid[a] - centroid[s])), s)
+                 for i, s in enumerate(order) if i > 0]
+        return dict(X=X, labels=labels, ts=ts, share=share, emerged=emerged, centroid=centroid,
+                    order=order, edges=edges)
 
-    @staticmethod
-    def _plot_shares(ax, res, ts, share, emerged, legend=False):
-        ax.stackplot(ts, share, colors=[COLORS[s % 10] for s in range(res["k"])], alpha=0.8,
-                     labels=[f"{s + 1}. {n}" for s, n in enumerate(res["names"])])
-        for s in range(res["k"]):
-            ax.axvline(emerged[s], color=COLORS[s % 10], ls=":", lw=1.5)
-        ax.set_xticks(ts)
-        ax.set_xlim(ts[0], ts[-1])
-        ax.set_ylim(0, 1)
-        if legend:
-            ax.legend(fontsize=7, loc="upper left")
-
-    def plot_overview(self, res, n_labeled=6, axes=None):
+    def plot_chain_3d(self, res, sample, title, periods, concreteness=None, blob_points=25, ax=None):
         """
-        (a) National sense space: every sampled use coloured by sense; black line = mean vector per decade.
-        (b) National sense shares per decade (dotted = emergence).
-        (c) Mean vector per decade for every eligible state in the same space; the n_labeled states with
-            the most uses are coloured, the rest grey.
+        Li et al.-style 3-D sense chain: x = year, y/z = PC 2/PC 1.
+          Blobs:  in every period, one blob per sense that period (up to blob_points uses), from the sense's
+                  emergence on, wherever it holds >= min_share of that period's uses, so the whole
+                  1860-1925 span shows how the word's uses shift.
+          Lines:  each sense's centre from period to period (drift within the sense).
+          Arrows: Li et al.'s chain, from the closest earlier sense (its position just before) to each new
+                  sense where it emerges.
+        Colour = sense concreteness if norms are given, else distance (in PC space) from the first sense.
         """
-        if axes is None:
-            axes = plt.figure(figsize=(19, 5.5)).subplots(1, 3)
-        emb, _, times = res["nat"]
-        ts, share, emerged = self._shares(self._assign(res, emb)[1], times, res["k"], res["min_share"])
-        self._plot_space(axes[0], res, emb, times, emerged)
-        axes[0].set_title(f"'{res['word']}' — all states: {res['k']} senses")
-        self._plot_shares(axes[1], res, ts, share, emerged)
-        axes[1].set_title("Sense shares (dotted = emergence)")
-        axes[1].set_xlabel("Decade")
-        axes[1].set_ylabel("Share of uses")
+        emb, sents, times = sample
+        c = self._chain(res, emb, times)
+        if ax is None:
+            ax = plt.figure(figsize=(9, 9)).add_subplot(projection="3d")
+        if not c["order"]:
+            ax.set_title(f"{title} (no sense reaches {res['min_share']:.0%})")
+            return ax
 
-        ax = axes[2]
-        top = sorted(res["totals"], key=res["totals"].get, reverse=True)[:n_labeled]
-        for st in res["eligible"]:
-            _, P = self._path(res, st)
-            if st in top:
-                c = COLORS[top.index(st) % 10]
-                ax.plot(P[:, 0], P[:, 1], "-o", ms=3, color=c, label=st, zorder=3)
-                ax.annotate(f"{ts[-1]}s", P[-1], fontsize=7, color=c)
-            else:
-                ax.plot(P[:, 0], P[:, 1], "-", color="0.8", lw=0.8, zorder=1)
-        _, P = self._path(res)
-        ax.plot(P[:, 0], P[:, 1], "--o", ms=3, color="k", lw=1.5, label="national", zorder=4)
-        ax.annotate(f"{ts[0]}s", P[0], fontsize=7)
-        ax.annotate(f"{ts[-1]}s", P[-1], fontsize=7)
-        ax.set_xlabel("PC 1")
+        first = c["order"][0]
+        if concreteness:
+            value = {s: self._sense_concreteness([x for x, l in zip(sents, c["labels"]) if l == s], concreteness)
+                     for s in c["order"]}
+            cmap, clabel = plt.get_cmap("coolwarm_r"), "Sense concreteness"
+        else:
+            value = {s: np.linalg.norm(c["centroid"][s] - c["centroid"][first]) for s in c["order"]}
+            cmap, clabel = plt.get_cmap("coolwarm_r"), "Distance from first sense"
+        vals = np.array(list(value.values()), float)
+        norm = plt.Normalize(np.nanmin(vals), np.nanmax(vals) if np.nanmax(vals) > np.nanmin(vals) else np.nanmin(vals) + 1)
+
+        rng = np.random.default_rng(0)
+        X, labels = c["X"], c["labels"]
+        path = {}  # sense -> {period: (PC 1, PC 2) of its centre}
+        for s in c["order"]:
+            color, path[s] = cmap(norm(value[s])), {}
+            for j, t in enumerate(c["ts"]):
+                if t < c["emerged"][s] or c["share"][s, j] < res["min_share"]:
+                    continue
+                idx = np.flatnonzero((labels == s) & (times == t))
+                path[s][t] = X[idx, :2].mean(axis=0)
+                idx = rng.choice(idx, min(blob_points, len(idx)), replace=False)
+                ax.scatter(np.full(len(idx), t), X[idx, 1], X[idx, 0], s=8, alpha=0.6, color=color,
+                           depthshade=False)
+            ts = sorted(path[s])
+            if len(ts) > 1:
+                P = np.array([path[s][t] for t in ts])
+                ax.plot(ts, P[:, 1], P[:, 0], color=color, lw=1.5, alpha=0.9)
+            if ts:
+                p1, p2 = path[s][ts[0]]
+                ax.text(ts[0], p2, p1, f"  {s + 1}. {res['names'][s]}", fontsize=9, zorder=10)
+
+        def at(s, t):
+            """Sense s's centre at its latest period <= t (its first period if it has none that early)."""
+            before = [u for u in path[s] if u <= t]
+            u = max(before) if before else min(path[s])
+            return u, path[s][u]
+
+        for a, b in c["edges"]:
+            if not path[a] or not path[b]:
+                continue
+            tb, (b1, b2) = at(b, c["emerged"][b])
+            ta, (a1, a2) = at(a, tb - 1)  # parent just before the new sense appears
+            ax.add_artist(Arrow3D((ta, a2, a1), (tb, b2, b1), arrowstyle="-|>", mutation_scale=20,
+                                  color="k", lw=1.5))
+
+        starts = [s for s, _ in periods]
+        ax.set_xlim(starts[0], starts[-1])
+        ax.set_xticks([s for s in starts if s % 10 == 0])
+        ax.set_xlabel("Year")
         ax.set_ylabel("PC 2")
-        ax.set_title(f"Mean vector per decade, {len(res['eligible'])} states (grey = unlabeled)")
-        ax.legend(fontsize=7)
-        return axes
+        ax.set_zlabel("PC 1")
+        ax.view_init(elev=25, azim=-50)
+        ax.set_box_aspect(None, zoom=0.85)  # keeps the PC 1 label inside the figure
+        ax.set_title(title)
+        cbar = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="horizontal",
+                            location="bottom", shrink=0.6, pad=0.04)
+        cbar.set_label(clabel)
+        return ax
 
-    def plot_state(self, res, state):
-        """One state's diagram in the national sense space: its uses and path, and its sense shares."""
-        axes = plt.figure(figsize=(13, 5.5)).subplots(1, 2)
-        emb, _, times = res["samples"][state]
-        ts, share, emerged = self._shares(self._assign(res, emb)[1], times, res["k"], res["min_share"])
-        self._plot_space(axes[0], res, emb, times, emerged, state=state)
-        axes[0].set_title(f"'{res['word']}' — {state} ({res['totals'][state]:,} uses)")
-        self._plot_shares(axes[1], res, ts, share, emerged)
-        axes[1].set_title(f"Sense shares in {state} (dotted = emergence here)")
-        axes[1].set_xlabel("Decade")
-        axes[1].set_ylabel("Share of uses")
-        return axes
+    def plot_states_3d(self, res, periods, concreteness=None, ncols=4):
+        """Small multiples: every state's 3-D sense chain in the shared sense space."""
+        states = sorted(res["samples"])
+        ncols = min(ncols, len(states))
+        nrows = -(-len(states) // ncols)
+        fig = plt.figure(figsize=(6 * ncols, 6 * nrows))
+        for i, st in enumerate(states):
+            ax = fig.add_subplot(nrows, ncols, i + 1, projection="3d")
+            self.plot_chain_3d(res, res["samples"][st], st, periods, concreteness, blob_points=15, ax=ax)
+        fig.suptitle(f"'{res['word']}' — sense chains by state", fontsize=16)
+        return fig
 
     def plot_state_grid(self, res, ncols=6):
-        """Small multiples: every state's sense shares per decade, to compare where and when senses spread."""
+        """Small multiples: every state's sense shares per period, to compare where and when senses spread."""
         states = sorted(res["samples"])
         ncols = min(ncols, len(states))
         nrows = -(-len(states) // ncols)
@@ -472,8 +570,12 @@ class DataPipeline:
         axes = fig.subplots(nrows, ncols, squeeze=False, sharex=True, sharey=True).ravel()
         for ax, st in zip(axes, states):
             emb, _, times = res["samples"][st]
-            ts, share, emerged = self._shares(self._assign(res, emb)[1], times, res["k"], res["min_share"])
-            self._plot_shares(ax, res, ts, share, emerged)
+            c = self._chain(res, emb, times)
+            ax.stackplot(c["ts"], c["share"], colors=[COLORS[s % 10] for s in range(res["k"])], alpha=0.8)
+            for s, t in c["emerged"].items():
+                ax.axvline(t, color=COLORS[s % 10], ls=":", lw=1.5)
+            ax.set_xlim(c["ts"][0], c["ts"][-1])
+            ax.set_ylim(0, 1)
             ax.set_title(st, fontsize=9)
             ax.tick_params(labelsize=6)
         for ax in axes[len(states):]:
@@ -486,10 +588,11 @@ class DataPipeline:
         return fig
 
     def state_emergence(self, res) -> pd.DataFrame:
-        """Emergence decade of each sense in each state (rows), plus the national row."""
+        """Emergence period of each sense (columns) nationally and in each state (rows); blank = never emerges."""
         rows = {}
         for st, (emb, _, times) in [("national", res["nat"])] + sorted(res["samples"].items()):
-            rows[st] = self._shares(self._assign(res, emb)[1], times, res["k"], res["min_share"])[2]
+            emerged = self._chain(res, emb, times)["emerged"]
+            rows[st] = [emerged.get(s, np.nan) for s in range(res["k"])]
         return pd.DataFrame(rows, index=[f"{s + 1}. {n}" for s, n in enumerate(res["names"])]).T
 
 
@@ -509,16 +612,41 @@ WORDS = [
     "car",        # railway car / carriage -> automobile, 1900-1910
     "station",    # railway station -> radio station, 1920s
     "screen",     # fire screen -> movie screen, 1910s
-]  # data_pipeline.sh sizes the job array from this list
-DECADES = [(y, y + 9) for y in range(1860, 1921, 10)]
-# State diagrams: None = every state with >= 200 uses of the word in every decade; or name them, e.g. ["New York"]
+]  # keep #SBATCH --array=0-(len(WORDS)-1) in data_pipeline.sh in sync (currently 0-12)
+# 5-year periods 1860-1924: finer time axis for the 3-D chains than decades (7 points) would give
+PERIODS = [(y, y + 4) for y in range(1860, 1926, 5)]  # 1860-1864 ... 1925-1929
+MIN_PERIOD_COUNT = 300  # periods with fewer uses nationally are dropped
+MIN_STATE_COUNT = 100   # a state gets diagrams if it has at least this many uses in every period
+N_SENSES = 8            # number of senses (Li et al.'s figure has ~7); None = elbow rule, which picks ~3 here
+# State diagrams: None = every state meeting MIN_STATE_COUNT; or name them, e.g. ["New York", "Kansas"]
 STATES = None
+
+
+def stitch_overviews(pipeline, out_path="sense_trajectories.png", ncols=4):
+    """Tile every finished word's 3-D sense chain into one figure (words not done yet are skipped)."""
+    pngs = [p for p in (pipeline.word_dir(w) / "sense_trajectory.png" for w in WORDS) if p.exists()]
+    if not pngs:
+        return
+    ncols = min(ncols, len(pngs))
+    nrows = -(-len(pngs) // ncols)
+    fig = plt.figure(figsize=(6 * ncols, 6 * nrows))
+    for ax, png in zip(fig.subplots(nrows, ncols, squeeze=False).ravel(), pngs + [None] * (nrows * ncols)):
+        if png is not None:
+            ax.imshow(plt.imread(png))
+        ax.axis("off")
+    plt.tight_layout()
+    # Write-then-rename: tasks finishing at the same time never leave a half-written file
+    tmp = Path(out_path).with_suffix(f".{os.getpid()}.png")
+    plt.savefig(tmp, dpi=150)
+    plt.close(fig)
+    tmp.replace(out_path)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("stage", choices=["clean", "word", "plot"],
                         help="clean: OCR-clean year files; word: extract+embed+all diagrams for one word; "
-                             "plot: stack every word's overview into one figure")
+                             "plot: tile every word's national diagram into one figure")
     parser.add_argument("index", nargs="?", type=int, help="index into WORDS (word stage; SLURM_ARRAY_TASK_ID)")
     args = parser.parse_args()
 
@@ -528,12 +656,15 @@ if __name__ == "__main__":
         EMBED_MODEL,
         1860, 1929,
     )
-    concreteness = None
+    concreteness = None  # e.g. DataPipeline.load_concreteness("<Brysbaert norms .tsv>") to colour by concreteness
 
     if args.stage == "clean":
         pipeline.clean_pipeline()
 
     elif args.stage == "word":
+        if args.index is None or not 0 <= args.index < len(WORDS):
+            raise SystemExit(f"word index {args.index} out of range: WORDS has {len(WORDS)} entries "
+                             f"(set #SBATCH --array=0-{len(WORDS) - 1} in data_pipeline.sh)")
         word = WORDS[args.index]
         out = pipeline.word_dir(word)
         if not pipeline.sentences_path(word).exists():
@@ -541,36 +672,34 @@ if __name__ == "__main__":
         if not pipeline.embeddings_path(word).exists():
             pipeline.embed_sentences(word)
 
-        res = pipeline.analyze_word(word, DECADES, states=STATES, concreteness=concreteness)
+        res = pipeline.analyze_word(word, PERIODS, states=STATES, n_senses=N_SENSES,
+                                    min_period_count=MIN_PERIOD_COUNT, min_state_count=MIN_STATE_COUNT)
         if res is None:
-            raise SystemExit(f"'{word}': fewer than 2 decades with enough uses")
+            raise SystemExit(f"'{word}': fewer than 2 periods with enough uses")
 
-        pipeline.plot_overview(res)
-        plt.tight_layout()
-        plt.savefig(out / "sense_trajectory.png", dpi=150)
+        # National 3-D sense chain
+        pipeline.plot_chain_3d(res, res["nat"], f"'{word}' — all states", PERIODS, concreteness)
+        plt.savefig(out / "sense_trajectory.png", dpi=150, bbox_inches="tight")
         plt.close("all")
 
+        # One 3-D sense chain per state, individually and side by side, plus sense shares and emergence table
+        (out / "states").mkdir(exist_ok=True)
+        for state in res["samples"]:
+            pipeline.plot_chain_3d(res, res["samples"][state], f"'{word}' — {state}", PERIODS, concreteness)
+            plt.savefig(out / "states" / f"{state.replace(' ', '_')}.png", dpi=150, bbox_inches="tight")
+            plt.close("all")
         if res["samples"]:
+            pipeline.plot_states_3d(res, PERIODS, concreteness)
+            plt.savefig(out / "states_3d.png", dpi=120, bbox_inches="tight")
+            plt.close("all")
             pipeline.plot_state_grid(res)
             plt.savefig(out / "state_shares.png", dpi=150, bbox_inches="tight")
             plt.close("all")
-            pipeline.state_emergence(res).to_csv(out / "state_emergence.csv")
-
-        (out / "states").mkdir(exist_ok=True)
-        for state in res["samples"]:
-            pipeline.plot_state(res, state)
-            plt.tight_layout()
-            plt.savefig(out / "states" / f"{state.replace(' ', '_')}.png", dpi=150)
-            plt.close("all")
+        pipeline.state_emergence(res).to_csv(out / "state_emergence.csv")
+        pipeline.write_sense_report(res, out / "senses.txt")
         print(f"'{word}': {res['k']} senses, {len(res['samples'])} state diagrams -> {out}")
+        # Every task refreshes the combined figure, so the last one to finish leaves it complete
+        stitch_overviews(pipeline)
 
     elif args.stage == "plot":
-        # Stitch the per-word overviews (already rendered by the word tasks) instead of re-scanning everything
-        pngs = [pipeline.word_dir(w) / "sense_trajectory.png" for w in WORDS]
-        pngs = [p for p in pngs if p.exists()]  # a failed word task doesn't block the rest
-        fig = plt.figure(figsize=(19, 5.5 * len(pngs)))
-        for ax, png in zip(fig.subplots(len(pngs), 1, squeeze=False).ravel(), pngs):
-            ax.imshow(plt.imread(png))
-            ax.axis("off")
-        plt.tight_layout()
-        plt.savefig("sense_trajectories.png", dpi=150)
+        stitch_overviews(pipeline)
