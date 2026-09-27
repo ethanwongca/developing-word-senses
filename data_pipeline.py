@@ -105,6 +105,13 @@ class DataPipeline:
         jobs = [(str(self.result_dir / f"{year}.parquet"), year, word, self.mask_token, region_col, batch_rows)
                 for year in range(self.start_year, self.end_year + 1)
                 if (self.result_dir / f"{year}.parquet").exists()]
+        if not jobs:
+            raise FileNotFoundError(f"No year files for {self.start_year}-{self.end_year} in {self.result_dir}")
+        # Fail now, not hours into the job, if a year file lacks a column (as happened with "region" vs "State")
+        for path, year, *_ in jobs:
+            missing = {"article", region_col} - set(pq.read_schema(path).names)
+            if missing:
+                raise KeyError(f"{path} lacks column(s) {sorted(missing)}; has {pq.read_schema(path).names}")
         out_path = self.sentences_path(word)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         tmp_path = out_path.with_suffix(".jsonl.tmp")  # renamed on success, so a crash can't leave a partial file
@@ -146,6 +153,11 @@ class DataPipeline:
             ("sentence", pa.string()),
             ("embedding", pa.list_(pa.float32(), dim)),
         ])
+        with open(self.sentences_path(word)) as f:
+            first = json.loads(f.readline() or "{}")
+        if first and set(first) != {"word", "year", "region", "sentence"}:
+            raise KeyError(f"{self.sentences_path(word)} rows have keys {sorted(first)}; "
+                           "expected word, year, region, sentence (delete it to re-extract)")
         buffer = []
         out_path = self.embeddings_path(word)
         tmp_path = out_path.with_suffix(".parquet.tmp")
@@ -233,160 +245,280 @@ class DataPipeline:
         vals = [concreteness[t] for t in tokens if t in concreteness and t not in ENGLISH_STOP_WORDS]
         return np.mean(vals) if vals else np.nan
 
-    def _scan(self, word, periods, region=None, max_points=1000, min_period_count=500, batch_rows=65_536):
+    def _scan(self, word, periods, states=None, max_points=1000, state_points=500,
+              min_period_count=500, min_state_count=200, batch_rows=65_536) -> Optional[dict]:
         """
         One streamed pass over the word's context vectors, returning
-          - a sample of up to max_points uses per period (for PCA and clustering; balanced so no period dominates)
-          - the mean vector and count per (period, state), and per period over all states
-        Periods with fewer than min_period_count uses are dropped: a few hundred mostly-OCR-noise uses
+          nat:       a balanced sample of up to max_points uses per period (fits PCA and the senses)
+          samples:   {state: sample of up to state_points uses per period in that state}
+          means:     {(period, state): mean vector}; overall: {period: mean vector}
+          eligible:  states with >= min_state_count uses in every kept period, so their diagrams cover
+                     the same decades (states=None samples exactly these; pass a list to choose, [] for none)
+        Periods with < min_period_count uses nationally are dropped: a few hundred mostly-OCR-noise uses
         would otherwise date senses.
         """
         path = self.embeddings_path(word)
         meta = pq.read_table(path, columns=["year", "region"])
         years = meta.column("year").to_numpy()
-        state_codes, states = pd.factorize(pd.Series(meta.column("region").to_pylist()))
-        in_region = np.ones(len(years), bool) if region is None else states[state_codes] == region
-
+        codes, names = pd.factorize(pd.Series(meta.column("region").to_pylist()))
+        names = list(names)
         starts = np.array([s for s, _ in periods])
+        n_p, n_s = len(periods), len(names)
+
         p_idx = np.full(len(years), -1)
         for i, (s, e) in enumerate(periods):
-            p_idx[(years >= s) & (years <= e) & in_region] = i
-        counts = np.bincount(p_idx[p_idx >= 0], minlength=len(periods))
-        p_idx[np.isin(p_idx, np.flatnonzero(counts < min_period_count))] = -1
+            p_idx[(years >= s) & (years <= e)] = i
+        sparse = np.flatnonzero(np.bincount(p_idx[p_idx >= 0], minlength=n_p) < min_period_count)
+        p_idx[np.isin(p_idx, sparse)] = -1
+        live = np.unique(p_idx[p_idx >= 0])
+        if len(live) < 2:
+            return None
+
+        has_state = (p_idx >= 0) & (codes >= 0)
+        counts = np.zeros((n_p, n_s), int)
+        np.add.at(counts, (p_idx[has_state], codes[has_state]), 1)
+        # "Georgia, Virginia"-style values are papers filed under several states, not a state
+        eligible = [st for j, st in enumerate(names) if "," not in st and (counts[live, j] >= min_state_count).all()]
+        states = eligible if states is None else [st for st in states if st in names]
 
         rng = np.random.default_rng(0)
-        sampled = np.zeros(len(years), bool)
-        for i in np.unique(p_idx[p_idx >= 0]):
+        in_nat, in_state = np.zeros(len(years), bool), np.zeros(len(years), bool)
+        for i in live:
             idx = np.flatnonzero(p_idx == i)
-            sampled[rng.choice(idx, min(max_points, len(idx)), replace=False)] = True
+            in_nat[rng.choice(idx, min(max_points, len(idx)), replace=False)] = True
+            for st in states:
+                idx = np.flatnonzero((p_idx == i) & (codes == names.index(st)))
+                in_state[rng.choice(idx, min(state_points, len(idx)), replace=False)] = True
 
-        # Group sums via a sparse one-hot matrix: key = period * n_states + state; last n_periods keys = all states
-        n_p, n_s = len(periods), len(states)
-        key = np.where((p_idx >= 0) & (state_codes >= 0), p_idx * n_s + state_codes, -1)
+        # Group sums via a sparse one-hot matrix: key = period * n_states + state; last n_p keys = all states
+        key = np.where(has_state, p_idx * n_s + codes, -1)
+        nat_key = np.where(p_idx >= 0, n_p * n_s + p_idx, -1)
         dim = pq.ParquetFile(path).schema_arrow.field("embedding").type.list_size
         sums, sizes = np.zeros((n_p * n_s + n_p, dim)), np.zeros(n_p * n_s + n_p)
-        emb, sents, times, offset = [], [], [], 0
+        kept_X, kept_rows, sents, offset = [], [], [], 0
         for batch in pq.ParquetFile(path).iter_batches(batch_size=batch_rows, columns=["embedding", "sentence"]):
             n = batch.num_rows
             X = self._to_matrix(batch)
-            for keys in (key[offset:offset + n], np.where(p_idx[offset:offset + n] >= 0,
-                                                          n_p * n_s + p_idx[offset:offset + n], -1)):
+            for keys in (key[offset:offset + n], nat_key[offset:offset + n]):
                 ok = keys >= 0
                 onehot = sp.csr_matrix((np.ones(ok.sum()), (keys[ok], np.flatnonzero(ok))), shape=(len(sums), n))
                 sums += onehot @ X
                 sizes += np.bincount(keys[ok], minlength=len(sums))
-            take = np.flatnonzero(sampled[offset:offset + n])
+            take = np.flatnonzero(in_nat[offset:offset + n] | in_state[offset:offset + n])
             if len(take):
-                emb.append(X[take])
-                sents += [batch.column("sentence")[int(j)].as_py() for j in take]
-                times += list(starts[p_idx[offset + take]])
+                kept_X.append(X[take])
+                kept_rows.append(offset + take)
+                sents += batch.column("sentence").take(pa.array(take)).to_pylist()
             offset += n
 
-        means = sums / np.maximum(sizes, 1)[:, None]
-        by_state = {(starts[i], states[j]): (means[i * n_s + j], sizes[i * n_s + j])
-                    for i in range(n_p) for j in range(n_s) if sizes[i * n_s + j]}
-        overall = {starts[i]: means[n_p * n_s + i] for i in range(n_p) if sizes[n_p * n_s + i]}
-        if not emb:
-            return None
-        return np.vstack(emb), sents, np.array(times), by_state, overall
+        rows, KX, sents = np.concatenate(kept_rows), np.vstack(kept_X), np.array(sents, dtype=object)
 
-    def plot_word(self, word, periods, region=None, n_senses=None, k_max=8, max_points=1000,
-                  min_period_count=500, min_share=0.1, n_states=6, min_state_count=200,
-                  concreteness=None, axes=None):
+        def group(mask):
+            return KX[mask], list(sents[mask]), starts[p_idx[rows[mask]]]
+
+        means = sums / np.maximum(sizes, 1)[:, None]
+        return {
+            "word": word,
+            "nat": group(in_nat[rows]),
+            "samples": {st: group(in_state[rows] & (codes[rows] == names.index(st))) for st in states},
+            "means": {(starts[i], names[j]): means[i * n_s + j]
+                      for i in live for j in range(n_s) if sizes[i * n_s + j] >= min_state_count},
+            "overall": {starts[i]: means[n_p * n_s + i] for i in live},
+            "eligible": eligible,
+            "totals": {st: int(counts[live, names.index(st)].sum()) for st in eligible},
+        }
+
+    @staticmethod
+    def _shares(labels, times, k, min_share):
+        """
+        Share of each sense per period, and its emergence: the first period where it holds >= min_share of
+        uses and still does in the next (k-means hands every sense a few stray early uses, so a blip isn't it).
+        """
+        ts = np.unique(times)
+        share = np.array([[np.mean(labels[times == t] == s) for t in ts] for s in range(k)])
+        above = share >= min_share
+        sustained = above & np.hstack([above[:, 1:], above[:, -1:]])  # last period only needs itself
+        emerged = np.array([ts[np.argmax(row)] if row.any() else ts[share[s].argmax()]
+                            for s, row in enumerate(sustained)])
+        return ts, share, emerged
+
+    def analyze_word(self, word, periods, states=None, n_senses=None, k_max=8, min_share=0.1,
+                     concreteness=None, **scan_kwargs) -> Optional[dict]:
         """
         Following Li et al.: context vectors -> top 2 PCs -> k-means sense clusters in that 2-D space.
-        (a) Sense space: every sampled use, coloured by sense; black line = the word's mean vector per period.
-        (b) Sense shares per period: emergence and decline. A sense emerges at the first period where it holds
-            >= min_share of uses and still does in the next (k-means hands every sense a few stray early uses).
-        (c) The word's mean vector per period in each of the n_states states with the most uses, in the same
-            PC space (a period is shown for a state only if it has >= min_state_count uses there).
+        PCA and senses are fitted once on the national sample, then applied to every state, so a sense means
+        the same thing (same colour, same number) in every state's diagram. Senses are numbered by emergence.
         """
-        if axes is None:
-            axes = plt.figure(figsize=(19, 5.5)).subplots(1, 3)
-        where = region or "all states"
-        scan = self._scan(word, periods, region, max_points, min_period_count)
-        if scan is None or len(np.unique(scan[2])) < 2:
-            axes[0].set_title(f"'{word}' — {where} (not enough data)")
-            return axes
-        emb, sents, times, by_state, overall = scan
-
+        res = self._scan(word, periods, states, **scan_kwargs)
+        if res is None:
+            return None
+        emb, sents, times = res["nat"]
         pca = PCA(n_components=2).fit(emb)
         X = pca.transform(emb)
         k = n_senses or self._choose_k(X, k_max)
-        labels = KMeans(k, n_init=10, random_state=0).fit_predict(X)
-
-        # Number senses by emergence (then by mean year), so sense 1 is the oldest
-        period_starts = np.unique(times)
-        share = np.array([[np.mean(labels[times == t] == s) for t in period_starts] for s in range(k)])
-        above = share >= min_share
-        sustained = above & np.hstack([above[:, 1:], above[:, -1:]])  # last period only needs itself
-        emerged = np.array([period_starts[np.argmax(row)] if row.any() else period_starts[share[s].argmax()]
-                            for s, row in enumerate(sustained)])
-        mean_time = np.array([times[labels == s].mean() for s in range(k)])
+        km = KMeans(k, n_init=10, random_state=0).fit(X)
+        _, _, emerged = self._shares(km.labels_, times, k, min_share)
+        mean_time = np.array([times[km.labels_ == s].mean() for s in range(k)])
         order = np.lexsort((mean_time, emerged))
-        names = self._sense_names(sents, labels, k)
-        colors = plt.get_cmap("tab10").colors
+        rank = np.empty(k, int)
+        rank[order] = np.arange(k)
+        names = self._sense_names(sents, rank[km.labels_], k)
+        if concreteness:
+            names = [f"{n}, conc {self._sense_concreteness([x for x, l in zip(sents, rank[km.labels_]) if l == s], concreteness):.2f}"
+                     for s, n in enumerate(names)]
+        res.update(pca=pca, km=km, rank=rank, k=k, names=names, min_share=min_share)
+        return res
 
-        def label(s):
-            extra = ""
-            if concreteness:
-                extra = f", conc {self._sense_concreteness([x for x, l in zip(sents, labels) if l == s], concreteness):.2f}"
-            return f"{names[s]} (from {emerged[s]}s{extra})"
+    @staticmethod
+    def _assign(res, emb):
+        """PC coordinates and (emergence-ordered) sense of each vector, in the word's national sense space."""
+        X = res["pca"].transform(emb)
+        return X, res["rank"][res["km"].predict(X)]
 
-        # (a) Sense space
-        ax = axes[0]
-        for rank, s in enumerate(order):
+    def _path(self, res, state=None):
+        """The word's mean vector per period (nationally, or in one state) in PC space."""
+        pts = [(t, v) for t, v in sorted(res["overall"].items())] if state is None else \
+              [(t, res["means"][(t, state)]) for t in sorted(res["overall"]) if (t, state) in res["means"]]
+        return [t for t, _ in pts], res["pca"].transform(np.array([v for _, v in pts]))
+
+    def _plot_space(self, ax, res, emb, times, emerged, state=None):
+        """Uses coloured by sense, with the mean-vector path (state solid, national dashed)."""
+        X, labels = self._assign(res, emb)
+        for s in range(res["k"]):
             m = labels == s
-            ax.scatter(X[m, 0], X[m, 1], s=3, alpha=0.25, color=colors[rank % 10], label=label(s))
-        path = np.array([pca.transform(overall[t][None])[0] for t in period_starts])
-        ax.plot(path[:, 0], path[:, 1], "-o", color="k", lw=2, ms=4)
-        for t, (x, y) in zip(period_starts, path):
-            ax.annotate(f"{t}s", (x, y), fontsize=7, xytext=(3, 3), textcoords="offset points")
-        ax.set_title(f"'{word}' — {where}: {k} senses")
+            ax.scatter(X[m, 0], X[m, 1], s=3, alpha=0.25, color=COLORS[s % 10],
+                       label=f"{s + 1}. {res['names'][s]} (from {emerged[s]}s)")
+        for st, style in ([(state, "-o"), (None, "--")] if state else [(None, "-o")]):
+            ts, P = self._path(res, st)
+            ax.plot(P[:, 0], P[:, 1], style, color="k", lw=2 if st == state else 1.2, ms=4,
+                    label=None if st == state else "national mean")
+            if st == state:
+                for t, (x, y) in zip(ts, P):
+                    ax.annotate(f"{t}s", (x, y), fontsize=7, xytext=(3, 3), textcoords="offset points")
+        pca = res["pca"]
         ax.set_xlabel(f"PC 1 ({pca.explained_variance_ratio_[0]:.0%})")
         ax.set_ylabel(f"PC 2 ({pca.explained_variance_ratio_[1]:.0%})")
         ax.legend(fontsize=7, markerscale=4, loc="best")
 
-        # (b) Sense shares over time
-        ax = axes[1]
-        ax.stackplot(period_starts, share[order], colors=[colors[r % 10] for r in range(k)], alpha=0.8)
-        for rank, s in enumerate(order):
-            ax.axvline(emerged[s], color=colors[rank % 10], ls=":", lw=1.5)
-        ax.set_xticks(period_starts)
-        ax.set_xlim(period_starts[0], period_starts[-1])
+    @staticmethod
+    def _plot_shares(ax, res, ts, share, emerged, legend=False):
+        ax.stackplot(ts, share, colors=[COLORS[s % 10] for s in range(res["k"])], alpha=0.8,
+                     labels=[f"{s + 1}. {n}" for s, n in enumerate(res["names"])])
+        for s in range(res["k"]):
+            ax.axvline(emerged[s], color=COLORS[s % 10], ls=":", lw=1.5)
+        ax.set_xticks(ts)
+        ax.set_xlim(ts[0], ts[-1])
         ax.set_ylim(0, 1)
-        ax.set_xlabel("Decade")
-        ax.set_ylabel("Share of uses")
-        ax.set_title("Sense shares (dotted = emergence)")
+        if legend:
+            ax.legend(fontsize=7, loc="upper left")
 
-        # (c) Per-state trajectories in the same PC space
+    def plot_overview(self, res, n_labeled=6, axes=None):
+        """
+        (a) National sense space: every sampled use coloured by sense; black line = mean vector per decade.
+        (b) National sense shares per decade (dotted = emergence).
+        (c) Mean vector per decade for every eligible state in the same space; the n_labeled states with
+            the most uses are coloured, the rest grey.
+        """
+        if axes is None:
+            axes = plt.figure(figsize=(19, 5.5)).subplots(1, 3)
+        emb, _, times = res["nat"]
+        ts, share, emerged = self._shares(self._assign(res, emb)[1], times, res["k"], res["min_share"])
+        self._plot_space(axes[0], res, emb, times, emerged)
+        axes[0].set_title(f"'{res['word']}' — all states: {res['k']} senses")
+        self._plot_shares(axes[1], res, ts, share, emerged)
+        axes[1].set_title("Sense shares (dotted = emergence)")
+        axes[1].set_xlabel("Decade")
+        axes[1].set_ylabel("Share of uses")
+
         ax = axes[2]
-        totals = pd.Series({st: n for (_, st), (_, n) in by_state.items()}).groupby(level=0).sum()
-        for i, st in enumerate(totals.nlargest(n_states).index if region is None else [region]):
-            pts = [(t, v) for t in period_starts for (tt, s2), (v, n) in by_state.items()
-                   if tt == t and s2 == st and n >= min_state_count]
-            if len(pts) < 2:
-                continue
-            P = pca.transform(np.array([v for _, v in pts]))
-            ax.plot(P[:, 0], P[:, 1], "-o", ms=3, color=colors[i % 10], label=st)
-            ax.annotate(f"{pts[0][0]}s", P[0], fontsize=7, color=colors[i % 10])
-            ax.annotate(f"{pts[-1][0]}s", P[-1], fontsize=7, color=colors[i % 10])
-        ax.plot(path[:, 0], path[:, 1], "--", color="k", lw=1.5, label="all states")
+        top = sorted(res["totals"], key=res["totals"].get, reverse=True)[:n_labeled]
+        for st in res["eligible"]:
+            _, P = self._path(res, st)
+            if st in top:
+                c = COLORS[top.index(st) % 10]
+                ax.plot(P[:, 0], P[:, 1], "-o", ms=3, color=c, label=st, zorder=3)
+                ax.annotate(f"{ts[-1]}s", P[-1], fontsize=7, color=c)
+            else:
+                ax.plot(P[:, 0], P[:, 1], "-", color="0.8", lw=0.8, zorder=1)
+        _, P = self._path(res)
+        ax.plot(P[:, 0], P[:, 1], "--o", ms=3, color="k", lw=1.5, label="national", zorder=4)
+        ax.annotate(f"{ts[0]}s", P[0], fontsize=7)
+        ax.annotate(f"{ts[-1]}s", P[-1], fontsize=7)
         ax.set_xlabel("PC 1")
         ax.set_ylabel("PC 2")
-        ax.set_title("Mean vector per decade, by state")
+        ax.set_title(f"Mean vector per decade, {len(res['eligible'])} states (grey = unlabeled)")
         ax.legend(fontsize=7)
         return axes
 
+    def plot_state(self, res, state):
+        """One state's diagram in the national sense space: its uses and path, and its sense shares."""
+        axes = plt.figure(figsize=(13, 5.5)).subplots(1, 2)
+        emb, _, times = res["samples"][state]
+        ts, share, emerged = self._shares(self._assign(res, emb)[1], times, res["k"], res["min_share"])
+        self._plot_space(axes[0], res, emb, times, emerged, state=state)
+        axes[0].set_title(f"'{res['word']}' — {state} ({res['totals'][state]:,} uses)")
+        self._plot_shares(axes[1], res, ts, share, emerged)
+        axes[1].set_title(f"Sense shares in {state} (dotted = emergence here)")
+        axes[1].set_xlabel("Decade")
+        axes[1].set_ylabel("Share of uses")
+        return axes
 
+    def plot_state_grid(self, res, ncols=6):
+        """Small multiples: every state's sense shares per decade, to compare where and when senses spread."""
+        states = sorted(res["samples"])
+        ncols = min(ncols, len(states))
+        nrows = -(-len(states) // ncols)
+        fig = plt.figure(figsize=(3.2 * ncols, 2.6 * nrows + 1))
+        axes = fig.subplots(nrows, ncols, squeeze=False, sharex=True, sharey=True).ravel()
+        for ax, st in zip(axes, states):
+            emb, _, times = res["samples"][st]
+            ts, share, emerged = self._shares(self._assign(res, emb)[1], times, res["k"], res["min_share"])
+            self._plot_shares(ax, res, ts, share, emerged)
+            ax.set_title(st, fontsize=9)
+            ax.tick_params(labelsize=6)
+        for ax in axes[len(states):]:
+            ax.axis("off")
+        handles = [plt.Rectangle((0, 0), 1, 1, color=COLORS[s % 10]) for s in range(res["k"])]
+        fig.legend(handles, [f"{s + 1}. {n}" for s, n in enumerate(res["names"])], loc="lower center",
+                   bbox_to_anchor=(0.5, 1.0), ncol=min(res["k"], 4), fontsize=9)
+        fig.suptitle(f"'{res['word']}' — sense shares by state (dotted = emergence)", y=1.08)
+        fig.tight_layout()
+        return fig
+
+    def state_emergence(self, res) -> pd.DataFrame:
+        """Emergence decade of each sense in each state (rows), plus the national row."""
+        rows = {}
+        for st, (emb, _, times) in [("national", res["nat"])] + sorted(res["samples"].items()):
+            rows[st] = self._shares(self._assign(res, emb)[1], times, res["k"], res["min_share"])[2]
+        return pd.DataFrame(rows, index=[f"{s + 1}. {n}" for s, n in enumerate(res["names"])]).T
+
+
+COLORS = plt.get_cmap("tab10").colors
 EMBED_MODEL = "bert-base-uncased"  # as in Li et al.; any masked LM works, e.g. "sentence-transformers/all-mpnet-base-v2"
-WORDS = ["trust", "strike", "wire", "lobby", "deadline"]  # keep --array in data_pipeline.sh at 0-(len-1)
+WORDS = [
+    # Original set
+    "trust",      # legal trust -> monopoly ("the Standard Oil trust"), 1880s
+    "strike", "wire", "lobby",
+    "deadline",   # Civil War prison line -> time limit, 1920s
+    # Controls: new sense arrives with a technology at a documented date
+    "tank",       # water tank -> military tank, 1916
+    "broadcast",  # sowing seed -> radio, ~1920
+    "plane",      # tool / geometry -> aeroplane, 1908+
+    "film",       # thin layer -> motion picture, 1905-1915
+    "record",     # written record -> phonograph record, 1890s+
+    "car",        # railway car / carriage -> automobile, 1900-1910
+    "station",    # railway station -> radio station, 1920s
+    "screen",     # fire screen -> movie screen, 1910s
+]  # data_pipeline.sh sizes the job array from this list
 DECADES = [(y, y + 9) for y in range(1860, 1921, 10)]
+# State diagrams: None = every state with >= 200 uses of the word in every decade; or name them, e.g. ["New York"]
+STATES = None
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("stage", choices=["clean", "word", "plot"],
-                        help="clean: OCR-clean year files; word: extract+embed+plot one word; plot: combined figure")
+                        help="clean: OCR-clean year files; word: extract+embed+all diagrams for one word; "
+                             "plot: stack every word's overview into one figure")
     parser.add_argument("index", nargs="?", type=int, help="index into WORDS (word stage; SLURM_ARRAY_TASK_ID)")
     args = parser.parse_args()
 
@@ -403,18 +535,42 @@ if __name__ == "__main__":
 
     elif args.stage == "word":
         word = WORDS[args.index]
+        out = pipeline.word_dir(word)
         if not pipeline.sentences_path(word).exists():
             pipeline.extract_sentences(word, workers=int(os.environ.get("SLURM_CPUS_PER_TASK", 1)))
         if not pipeline.embeddings_path(word).exists():
             pipeline.embed_sentences(word)
-        pipeline.plot_word(word, DECADES, concreteness=concreteness)
+
+        res = pipeline.analyze_word(word, DECADES, states=STATES, concreteness=concreteness)
+        if res is None:
+            raise SystemExit(f"'{word}': fewer than 2 decades with enough uses")
+
+        pipeline.plot_overview(res)
         plt.tight_layout()
-        plt.savefig(pipeline.word_dir(word) / "sense_trajectory.png", dpi=150)
+        plt.savefig(out / "sense_trajectory.png", dpi=150)
+        plt.close("all")
+
+        if res["samples"]:
+            pipeline.plot_state_grid(res)
+            plt.savefig(out / "state_shares.png", dpi=150, bbox_inches="tight")
+            plt.close("all")
+            pipeline.state_emergence(res).to_csv(out / "state_emergence.csv")
+
+        (out / "states").mkdir(exist_ok=True)
+        for state in res["samples"]:
+            pipeline.plot_state(res, state)
+            plt.tight_layout()
+            plt.savefig(out / "states" / f"{state.replace(' ', '_')}.png", dpi=150)
+            plt.close("all")
+        print(f"'{word}': {res['k']} senses, {len(res['samples'])} state diagrams -> {out}")
 
     elif args.stage == "plot":
-        fig = plt.figure(figsize=(19, 5.5 * len(WORDS)))
-        axes = fig.subplots(len(WORDS), 3, squeeze=False)
-        for word, row in zip(WORDS, axes):
-            pipeline.plot_word(word, DECADES, concreteness=concreteness, axes=row)
+        # Stitch the per-word overviews (already rendered by the word tasks) instead of re-scanning everything
+        pngs = [pipeline.word_dir(w) / "sense_trajectory.png" for w in WORDS]
+        pngs = [p for p in pngs if p.exists()]  # a failed word task doesn't block the rest
+        fig = plt.figure(figsize=(19, 5.5 * len(pngs)))
+        for ax, png in zip(fig.subplots(len(pngs), 1, squeeze=False).ravel(), pngs):
+            ax.imshow(plt.imread(png))
+            ax.axis("off")
         plt.tight_layout()
         plt.savefig("sense_trajectories.png", dpi=150)
