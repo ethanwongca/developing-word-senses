@@ -4,6 +4,7 @@ import multiprocessing as mp
 import os
 import re
 import unicodedata
+from functools import cached_property
 from pathlib import Path
 from typing import Optional
 
@@ -12,28 +13,16 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
+import scipy.sparse as sp
+import torch
 from nltk.tokenize import sent_tokenize
-from sentence_transformers import SentenceTransformer
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS, TfidfVectorizer
-from matplotlib.patches import FancyArrowPatch
-from mpl_toolkits.mplot3d import proj3d
-from sklearn.metrics import silhouette_score
+from transformers import AutoModel, AutoTokenizer
 
-
-class Arrow3D(FancyArrowPatch):
-    """Arrow drawn in screen space, so the head isn't distorted by unequal axis scales."""
-
-    def __init__(self, start, end, **kwargs):
-        super().__init__((0, 0), (0, 0), **kwargs)
-        self._start, self._end = start, end
-
-    def do_3d_projection(self, renderer=None):
-        xs, ys, zs = zip(self._start, self._end)
-        xs, ys, zs = proj3d.proj_transform(xs, ys, zs, self.axes.M)
-        self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
-        return min(zs)
+# Any mask token a sentences.jsonl may contain (older files were written with MPNet's <mask>)
+MASK_RE = re.compile(r"<mask>|\[MASK\]")
 
 
 def _extract_year(args) -> list[str]:
@@ -57,12 +46,20 @@ class DataPipeline:
     def __init__(self, data_dir: str, result_dir: str, model: str, start_year: int, end_year: int):
         self.data_dir = Path(data_dir)
         self.result_dir = Path(result_dir)
-        self.model = SentenceTransformer(model)
-        self.mask_token = self.model.tokenizer.mask_token
+        self.model_name = model
+        self.tokenizer = AutoTokenizer.from_pretrained(model)
+        self.mask_token = self.tokenizer.mask_token
         if self.mask_token is None:
             raise ValueError(f"Model '{model}' has no mask token.")
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.start_year = start_year
         self.end_year = end_year
+
+    @cached_property
+    def model(self):
+        """Loaded on first use, so plotting on a CPU node doesn't pay for it."""
+        model = AutoModel.from_pretrained(self.model_name).to(self.device).eval()
+        return model.half() if self.device == "cuda" else model
 
     def word_dir(self, word: str) -> Path:
         return self.result_dir / "words" / word
@@ -71,7 +68,8 @@ class DataPipeline:
         return self.word_dir(word) / "sentences.jsonl"
 
     def embeddings_path(self, word: str) -> Path:
-        return self.word_dir(word) / "embeddings.parquet"
+        # New name: embeddings.parquet holds the old whole-sentence embeddings, which must not be reused
+        return self.word_dir(word) / "context_vectors.parquet"
 
     @staticmethod
     def _clean_ocr_text(text: str, basic: bool = False) -> str:
@@ -116,9 +114,31 @@ class DataPipeline:
                 out.writelines(r + "\n" for r in rows)
         tmp_path.replace(out_path)
 
-    def embed_sentences(self, word: str, batch_size: int = 128, chunk_size: int = 16_384):
-        """Stream sentences.jsonl in chunks, embed, append to embeddings.parquet (sentence kept for sense labels)."""
-        dim = self.model.get_sentence_embedding_dimension()
+    def _window(self, sentence: str, width: int = 50) -> str:
+        """Keep `width` words either side of the first mask, so long OCR run-ons don't truncate it away."""
+        words = MASK_RE.sub(f" {self.mask_token} ", sentence).split()
+        i = next((j for j, w in enumerate(words) if w == self.mask_token), 0)
+        return " ".join(words[max(0, i - width): i + width + 1])
+
+    def _context_vectors(self, sentences: list[str], n_layers: int = 6) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Li et al.: the hidden state at the masked target, averaged over the last n_layers layers.
+        It is the model's representation of what fits the slot given the context, i.e. the sense.
+        Returns (vectors, keep); keep is False where the mask didn't survive tokenization.
+        """
+        enc = self.tokenizer([self._window(s) for s in sentences], padding=True, truncation=True,
+                             max_length=256, return_tensors="pt").to(self.device)
+        is_mask = enc["input_ids"] == self.tokenizer.mask_token_id
+        rows = torch.arange(len(sentences), device=self.device)
+        first = is_mask.int().argmax(dim=1)  # first mask if the word occurs more than once
+        with torch.inference_mode():
+            hidden = self.model(**enc, output_hidden_states=True).hidden_states[-n_layers:]
+            vecs = torch.stack([h[rows, first] for h in hidden]).float().mean(dim=0)
+        return vecs.cpu().numpy(), is_mask.any(dim=1).cpu().numpy()
+
+    def embed_sentences(self, word: str, batch_size: int = 256, chunk_size: int = 16_384):
+        """Stream sentences.jsonl in chunks, write one context vector per use (sentence kept for sense labels)."""
+        dim = self.model.config.hidden_size
         schema = pa.schema([
             ("word", pa.string()),
             ("year", pa.int32()),
@@ -134,14 +154,19 @@ class DataPipeline:
             def flush():
                 if not buffer:
                     return
-                emb = self.model.encode([r["sentence"] for r in buffer], batch_size=batch_size,
-                                        normalize_embeddings=True, convert_to_numpy=True).astype(np.float32)
+                # Length-sorted batches waste far less compute on padding
+                order = np.argsort([len(r["sentence"]) for r in buffer])
+                vecs, keep = np.zeros((len(buffer), dim), np.float32), np.zeros(len(buffer), bool)
+                for i in range(0, len(order), batch_size):
+                    idx = order[i:i + batch_size]
+                    vecs[idx], keep[idx] = self._context_vectors([buffer[j]["sentence"] for j in idx])
+                rows = [r for r, k in zip(buffer, keep) if k]
                 table = pa.table({
-                    "word": [r["word"] for r in buffer],
-                    "year": [r["year"] for r in buffer],
-                    "region": [r["region"] for r in buffer],
-                    "sentence": [r["sentence"] for r in buffer],
-                    "embedding": pa.FixedSizeListArray.from_arrays(pa.array(emb.ravel()), dim),
+                    "word": [r["word"] for r in rows],
+                    "year": [r["year"] for r in rows],
+                    "region": [r["region"] for r in rows],
+                    "sentence": [r["sentence"] for r in rows],
+                    "embedding": pa.FixedSizeListArray.from_arrays(pa.array(vecs[keep].ravel()), dim),
                 }, schema=schema)
                 writer.write_table(table)
                 buffer.clear()
@@ -162,21 +187,19 @@ class DataPipeline:
         return pq.read_table(self.embeddings_path(word), columns=columns, filters=filters)
 
     @staticmethod
-    def _to_matrix(table: pa.Table) -> np.ndarray:
-        col = table.column("embedding").combine_chunks()
-        return col.flatten().to_numpy().reshape(table.num_rows, col.type.list_size)
+    def _to_matrix(table) -> np.ndarray:
+        col = table.column("embedding")
+        col = col.combine_chunks() if isinstance(col, pa.ChunkedArray) else col
+        return col.flatten().to_numpy().reshape(len(col), col.type.list_size)
 
     def _load_embeddings(self, word, start_year, end_year, region=None) -> Optional[np.ndarray]:
         table = self._read(word, start_year, end_year, region, ["embedding"])
         return None if table.num_rows == 0 else self._to_matrix(table)
 
     def get_embeddings(self, word, start_year, end_year, region=None) -> Optional[np.ndarray]:
-        """Pooled: mean over sentences, re-normalized so cosine comparisons are valid."""
+        """Pooled: mean context vector over the word's uses in the period (and region)."""
         emb = self._load_embeddings(word, start_year, end_year, region)
-        if emb is None:
-            return None
-        mean = emb.mean(axis=0)
-        return mean / np.linalg.norm(mean)
+        return None if emb is None else emb.mean(axis=0)
 
     @staticmethod
     def load_concreteness(path: str) -> dict:
@@ -185,13 +208,13 @@ class DataPipeline:
         return dict(zip(df["Word"].astype(str).str.lower(), df["Conc.M"]))
 
     @staticmethod
-    def _choose_k(emb, k_max=7):
-        """Number of senses = k with best silhouette score."""
-        scores = {}
-        for k in range(2, min(k_max, len(emb) - 1) + 1):
-            labels = KMeans(k, n_init=10, random_state=0).fit_predict(emb)
-            scores[k] = silhouette_score(emb, labels, sample_size=min(2000, len(emb)), random_state=0)
-        return max(scores, key=scores.get)
+    def _choose_k(X, k_max=8):
+        """Elbow: the k where the inertia curve lies farthest below the straight line from k=1 to k_max."""
+        ks = np.arange(1, k_max + 1)
+        inertia = np.array([KMeans(k, n_init=10, random_state=0).fit(X).inertia_ for k in ks])
+        x = (ks - 1) / (k_max - 1)
+        y = (inertia - inertia[-1]) / (inertia[0] - inertia[-1])
+        return max(2, int(ks[np.argmax((1 - x) - y)]))
 
     @staticmethod
     def _sense_names(sents, labels, k, n_terms=2):
@@ -210,46 +233,89 @@ class DataPipeline:
         vals = [concreteness[t] for t in tokens if t in concreteness and t not in ENGLISH_STOP_WORDS]
         return np.mean(vals) if vals else np.nan
 
-    def plot_sense_trajectory(self, word, periods, region=None, n_senses=None, max_points=1000,
-                              min_share=0.1, min_period_count=500, min_sense_points=20,
-                              concreteness=None, ax=None):
+    def _scan(self, word, periods, region=None, max_points=1000, min_period_count=500, batch_rows=65_536):
         """
-        Senses = clusters of contextual embeddings over all periods; every use is plotted at its own period.
-        Lines = each sense's per-period centroid from its emergence on (drift = semantic shift within the
-        sense); marker size = the sense's share of that period's uses (growth/decline).
-        Emergence = first period where the sense holds >= min_share and still does in the next period.
-        Arrows = branching: at a sense's emergence, from its most similar earlier sense to it.
-        Colour = sense concreteness if norms given, else distance to the initial sense.
+        One streamed pass over the word's context vectors, returning
+          - a sample of up to max_points uses per period (for PCA and clustering; balanced so no period dominates)
+          - the mean vector and count per (period, state), and per period over all states
+        Periods with fewer than min_period_count uses are dropped: a few hundred mostly-OCR-noise uses
+        would otherwise date senses.
         """
-        # Sample up to max_points uses per period, so no period dominates the clustering.
-        # Sparse periods are skipped: a few hundred (mostly OCR-noise) uses would otherwise date senses.
+        path = self.embeddings_path(word)
+        meta = pq.read_table(path, columns=["year", "region"])
+        years = meta.column("year").to_numpy()
+        state_codes, states = pd.factorize(pd.Series(meta.column("region").to_pylist()))
+        in_region = np.ones(len(years), bool) if region is None else states[state_codes] == region
+
+        starts = np.array([s for s, _ in periods])
+        p_idx = np.full(len(years), -1)
+        for i, (s, e) in enumerate(periods):
+            p_idx[(years >= s) & (years <= e) & in_region] = i
+        counts = np.bincount(p_idx[p_idx >= 0], minlength=len(periods))
+        p_idx[np.isin(p_idx, np.flatnonzero(counts < min_period_count))] = -1
+
         rng = np.random.default_rng(0)
-        emb, sents, times = [], [], []
-        for start, end in periods:
-            table = self._read(word, start, end, region, ["embedding", "sentence"])
-            if table.num_rows < min_period_count:
-                continue
-            table = table.take(rng.choice(table.num_rows, min(max_points, table.num_rows), replace=False))
-            emb.append(self._to_matrix(table))
-            sents += table.column("sentence").to_pylist()
-            times += [start] * table.num_rows
+        sampled = np.zeros(len(years), bool)
+        for i in np.unique(p_idx[p_idx >= 0]):
+            idx = np.flatnonzero(p_idx == i)
+            sampled[rng.choice(idx, min(max_points, len(idx)), replace=False)] = True
 
-        if ax is None:
-            ax = plt.figure(figsize=(8, 6)).add_subplot(projection="3d")
-        ax.set_title(f"'{word}' — {region or 'all'}")
-        if len(emb) < 2:
-            ax.set_title(f"'{word}' — {region or 'all'} (not enough data)")
-            return ax
-        emb, times = np.vstack(emb), np.array(times)
+        # Group sums via a sparse one-hot matrix: key = period * n_states + state; last n_periods keys = all states
+        n_p, n_s = len(periods), len(states)
+        key = np.where((p_idx >= 0) & (state_codes >= 0), p_idx * n_s + state_codes, -1)
+        dim = pq.ParquetFile(path).schema_arrow.field("embedding").type.list_size
+        sums, sizes = np.zeros((n_p * n_s + n_p, dim)), np.zeros(n_p * n_s + n_p)
+        emb, sents, times, offset = [], [], [], 0
+        for batch in pq.ParquetFile(path).iter_batches(batch_size=batch_rows, columns=["embedding", "sentence"]):
+            n = batch.num_rows
+            X = self._to_matrix(batch)
+            for keys in (key[offset:offset + n], np.where(p_idx[offset:offset + n] >= 0,
+                                                          n_p * n_s + p_idx[offset:offset + n], -1)):
+                ok = keys >= 0
+                onehot = sp.csr_matrix((np.ones(ok.sum()), (keys[ok], np.flatnonzero(ok))), shape=(len(sums), n))
+                sums += onehot @ X
+                sizes += np.bincount(keys[ok], minlength=len(sums))
+            take = np.flatnonzero(sampled[offset:offset + n])
+            if len(take):
+                emb.append(X[take])
+                sents += [batch.column("sentence")[int(j)].as_py() for j in take]
+                times += list(starts[p_idx[offset + take]])
+            offset += n
 
-        # Senses: cluster all uses of the word across all periods
-        k = n_senses or self._choose_k(emb)
-        labels = KMeans(k, n_init=10, random_state=0).fit_predict(emb)
-        centroids = np.array([emb[labels == s].mean(axis=0) for s in range(k)])
-        unit = centroids / np.linalg.norm(centroids, axis=1, keepdims=True)
+        means = sums / np.maximum(sizes, 1)[:, None]
+        by_state = {(starts[i], states[j]): (means[i * n_s + j], sizes[i * n_s + j])
+                    for i in range(n_p) for j in range(n_s) if sizes[i * n_s + j]}
+        overall = {starts[i]: means[n_p * n_s + i] for i in range(n_p) if sizes[n_p * n_s + i]}
+        if not emb:
+            return None
+        return np.vstack(emb), sents, np.array(times), by_state, overall
 
-        # Emergence: first period where the sense holds >= min_share and keeps it the next period
-        # (k-means gives every sense some stray early uses, so a one-period blip isn't emergence)
+    def plot_word(self, word, periods, region=None, n_senses=None, k_max=8, max_points=1000,
+                  min_period_count=500, min_share=0.1, n_states=6, min_state_count=200,
+                  concreteness=None, axes=None):
+        """
+        Following Li et al.: context vectors -> top 2 PCs -> k-means sense clusters in that 2-D space.
+        (a) Sense space: every sampled use, coloured by sense; black line = the word's mean vector per period.
+        (b) Sense shares per period: emergence and decline. A sense emerges at the first period where it holds
+            >= min_share of uses and still does in the next (k-means hands every sense a few stray early uses).
+        (c) The word's mean vector per period in each of the n_states states with the most uses, in the same
+            PC space (a period is shown for a state only if it has >= min_state_count uses there).
+        """
+        if axes is None:
+            axes = plt.figure(figsize=(19, 5.5)).subplots(1, 3)
+        where = region or "all states"
+        scan = self._scan(word, periods, region, max_points, min_period_count)
+        if scan is None or len(np.unique(scan[2])) < 2:
+            axes[0].set_title(f"'{word}' — {where} (not enough data)")
+            return axes
+        emb, sents, times, by_state, overall = scan
+
+        pca = PCA(n_components=2).fit(emb)
+        X = pca.transform(emb)
+        k = n_senses or self._choose_k(X, k_max)
+        labels = KMeans(k, n_init=10, random_state=0).fit_predict(X)
+
+        # Number senses by emergence (then by mean year), so sense 1 is the oldest
         period_starts = np.unique(times)
         share = np.array([[np.mean(labels[times == t] == s) for t in period_starts] for s in range(k)])
         above = share >= min_share
@@ -257,65 +323,65 @@ class DataPipeline:
         emerged = np.array([period_starts[np.argmax(row)] if row.any() else period_starts[share[s].argmax()]
                             for s, row in enumerate(sustained)])
         mean_time = np.array([times[labels == s].mean() for s in range(k)])
-        order = np.lexsort((mean_time, emerged))  # by emergence, ties broken by average year
-
-        # Chaining: link each sense to its most similar earlier-emerged sense
-        edges = [(order[:i][np.argmax(unit[order[:i]] @ unit[s])], s) for i, s in enumerate(order) if i > 0]
-
-        # Trajectory: per-period centroid of each sense from its emergence on (skip periods with too few uses)
-        traj = {s: [(t, emb[(labels == s) & (times == t)].mean(axis=0), share[s, j])
-                    for j, t in enumerate(period_starts)
-                    if t >= emerged[s] and ((labels == s) & (times == t)).sum() >= min_sense_points]
-                for s in range(k)}
-
-        # Colour
-        if concreteness:
-            values = np.array([self._sense_concreteness([x for x, l in zip(sents, labels) if l == s], concreteness)
-                               for s in range(k)])
-            cmap, clabel = plt.get_cmap("coolwarm"), "Sense concreteness"
-        else:
-            values = 1 - unit @ unit[order[0]]
-            cmap, clabel = plt.get_cmap("coolwarm_r"), "Distance to initial sense"
-        norm = plt.Normalize(np.nanmin(values), np.nanmax(values))
-
-        # Plot: time x PC1 x PC2
-        pca = PCA(n_components=2).fit(emb)
-        pcs, cpcs = pca.transform(emb), pca.transform(centroids)
+        order = np.lexsort((mean_time, emerged))
         names = self._sense_names(sents, labels, k)
-        traj_pcs = {s: pca.transform(np.array([c for _, c, _ in traj[s]])) if traj[s] else None for s in range(k)}
+        colors = plt.get_cmap("tab10").colors
 
-        def position(s, t):
-            """Sense s's centroid at its latest trajectory period <= t (overall centroid if none)."""
-            idx = [i for i, (tt, _, _) in enumerate(traj[s]) if tt <= t]
-            return traj_pcs[s][idx[-1]] if idx else cpcs[s]
+        def label(s):
+            extra = ""
+            if concreteness:
+                extra = f", conc {self._sense_concreteness([x for x, l in zip(sents, labels) if l == s], concreteness):.2f}"
+            return f"{names[s]} (from {emerged[s]}s{extra})"
 
-        for s in range(k):
-            m, color = labels == s, cmap(norm(values[s]))
-            ax.scatter(times[m], pcs[m, 0], pcs[m, 1], s=2, alpha=0.08, color=color)
-            if traj[s]:
-                ts, shares = [t for t, _, _ in traj[s]], np.array([sh for _, _, sh in traj[s]])
-                p = traj_pcs[s]
-                ax.plot(ts, p[:, 0], p[:, 1], color=color, lw=2)
-                ax.scatter(ts, p[:, 0], p[:, 1], s=20 + 400 * shares, color=color, edgecolor="k",
-                           alpha=1, depthshade=False)
-            ax.text(emerged[s], *position(s, emerged[s]), names[s], fontsize=8)
-        for a, b in edges:
-            t = emerged[b]
-            ax.add_artist(Arrow3D((t, *position(a, t)), (t, *position(b, t)),
-                                  arrowstyle="-|>", mutation_scale=15, color="k", lw=1.5))
+        # (a) Sense space
+        ax = axes[0]
+        for rank, s in enumerate(order):
+            m = labels == s
+            ax.scatter(X[m, 0], X[m, 1], s=3, alpha=0.25, color=colors[rank % 10], label=label(s))
+        path = np.array([pca.transform(overall[t][None])[0] for t in period_starts])
+        ax.plot(path[:, 0], path[:, 1], "-o", color="k", lw=2, ms=4)
+        for t, (x, y) in zip(period_starts, path):
+            ax.annotate(f"{t}s", (x, y), fontsize=7, xytext=(3, 3), textcoords="offset points")
+        ax.set_title(f"'{word}' — {where}: {k} senses")
+        ax.set_xlabel(f"PC 1 ({pca.explained_variance_ratio_[0]:.0%})")
+        ax.set_ylabel(f"PC 2 ({pca.explained_variance_ratio_[1]:.0%})")
+        ax.legend(fontsize=7, markerscale=4, loc="best")
 
-        plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, label=clabel, shrink=0.6)
-        pad = 0.3 * np.diff(period_starts).min() if len(period_starts) > 1 else 5
-        ax.set_xlim(period_starts[0] - pad, period_starts[-1] + pad)
+        # (b) Sense shares over time
+        ax = axes[1]
+        ax.stackplot(period_starts, share[order], colors=[colors[r % 10] for r in range(k)], alpha=0.8)
+        for rank, s in enumerate(order):
+            ax.axvline(emerged[s], color=colors[rank % 10], ls=":", lw=1.5)
         ax.set_xticks(period_starts)
-        ax.set_xlabel("Year")
-        ax.set_ylabel("PC 1")
-        ax.set_zlabel("PC 2")
-        return ax
+        ax.set_xlim(period_starts[0], period_starts[-1])
+        ax.set_ylim(0, 1)
+        ax.set_xlabel("Decade")
+        ax.set_ylabel("Share of uses")
+        ax.set_title("Sense shares (dotted = emergence)")
+
+        # (c) Per-state trajectories in the same PC space
+        ax = axes[2]
+        totals = pd.Series({st: n for (_, st), (_, n) in by_state.items()}).groupby(level=0).sum()
+        for i, st in enumerate(totals.nlargest(n_states).index if region is None else [region]):
+            pts = [(t, v) for t in period_starts for (tt, s2), (v, n) in by_state.items()
+                   if tt == t and s2 == st and n >= min_state_count]
+            if len(pts) < 2:
+                continue
+            P = pca.transform(np.array([v for _, v in pts]))
+            ax.plot(P[:, 0], P[:, 1], "-o", ms=3, color=colors[i % 10], label=st)
+            ax.annotate(f"{pts[0][0]}s", P[0], fontsize=7, color=colors[i % 10])
+            ax.annotate(f"{pts[-1][0]}s", P[-1], fontsize=7, color=colors[i % 10])
+        ax.plot(path[:, 0], path[:, 1], "--", color="k", lw=1.5, label="all states")
+        ax.set_xlabel("PC 1")
+        ax.set_ylabel("PC 2")
+        ax.set_title("Mean vector per decade, by state")
+        ax.legend(fontsize=7)
+        return axes
 
 
-WORDS = ["trust", "strike", "wire", "lobby", "deadline"]
-DECADES = [(y, y + 9) for y in range(1820, 1921, 10)]
+EMBED_MODEL = "bert-base-uncased"  # as in Li et al.; any masked LM works, e.g. "sentence-transformers/all-mpnet-base-v2"
+WORDS = ["trust", "strike", "wire", "lobby", "deadline"]  # keep --array in data_pipeline.sh at 0-(len-1)
+DECADES = [(y, y + 9) for y in range(1860, 1921, 10)]
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -327,8 +393,8 @@ if __name__ == "__main__":
     pipeline = DataPipeline(
         "/home/ewong/scratch/american_stories/merged_data",
         "/home/ewong/scratch/developing-word-senses/clean_data",
-        "all-mpnet-base-v2",
-        1820, 1929,
+        EMBED_MODEL,
+        1860, 1929,
     )
     concreteness = None
 
@@ -341,14 +407,14 @@ if __name__ == "__main__":
             pipeline.extract_sentences(word, workers=int(os.environ.get("SLURM_CPUS_PER_TASK", 1)))
         if not pipeline.embeddings_path(word).exists():
             pipeline.embed_sentences(word)
-        pipeline.plot_sense_trajectory(word, DECADES, concreteness=concreteness)
+        pipeline.plot_word(word, DECADES, concreteness=concreteness)
         plt.tight_layout()
         plt.savefig(pipeline.word_dir(word) / "sense_trajectory.png", dpi=150)
 
     elif args.stage == "plot":
-        fig = plt.figure(figsize=(18, 11))
-        for i, word in enumerate(WORDS):
-            ax = fig.add_subplot(2, 3, i + 1, projection="3d")
-            pipeline.plot_sense_trajectory(word, DECADES, concreteness=concreteness, ax=ax)
+        fig = plt.figure(figsize=(19, 5.5 * len(WORDS)))
+        axes = fig.subplots(len(WORDS), 3, squeeze=False)
+        for word, row in zip(WORDS, axes):
+            pipeline.plot_word(word, DECADES, concreteness=concreteness, axes=row)
         plt.tight_layout()
         plt.savefig("sense_trajectories.png", dpi=150)
