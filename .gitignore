@@ -1,0 +1,6 @@
+clean_data/
+*.parquet*
+*.jsonl
+*.out
+*.err
+*.sh

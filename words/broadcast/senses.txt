@@ -1,0 +1,57 @@
+'broadcast': 5 senses (national sample of 9,949 uses)
+Label = BERT's most likely words for the masked slot in that sense's uses.
+
+Sense 1: seed / widely / worldwide
+  emerged: 1860   share of sample: 21%
+  context words: sown, seed, acre, sow, scattered, land
+  examples:
+    (1880) Then came the Manhattan ship-ioiners and the floats exhibiting their handcraft, the Operative plasterers' society at work at their trade, the cloaks and suit in dustry hard at il with scissors and needle, the marble-cutters scattering chips [MASK], 6
+    (1920) Prepare a fine, fertile seed bed and scatter the seed thinly [MASK] and rake them in lightly.
+    (1900) Address box 1872, Dickinson, N. d. 3-I7-tf While clover is not a success when grown upon new open prairie ground, a writer gives it as his experience that clover sowed [MASK] with corr does we'll; and four to six quarts of clover, mixed with the whea
+    (1890) zeuS hart Circulars in flaming colurs are | scattered [MASK].
+    (1880) Sec those tiny hills whence the hopeful germ of tho happy potato is looking toward the sunp Well, those little hills were once sown [MASK] with those beautiful suggestions of dromcdarial architecture known in tho parlancc of worldly fashion as-bus| t
+    (1900) Land on which rape is sown [MASK] should be comparatively free from weed seeds and in good condition gen orally.
+
+Sense 2: widely / rapidly / spread
+  emerged: 1860   share of sample: 17%
+  context words: country, scattered, land, sent, state, spread
+  examples:
+    (1910) This re- ort was circulated [MASK] over the state Gy some over-Zealous news paper reporter, who, evidently, thought he had some inside information.
+    (1870) Having caused it to be telegraphed [MASK] over the land that the House Committee on Naval Affairs had agreed to his report recommending Mr., robson to the solicitous attentions of all the penitentiaries in the country, he now stands convicted Of prev
+    (1870) His was n charge thrown [MASK] over the land.
+    (1870) ing printed IN the form Of report and scattered [MASK] over the country.
+    (1910) @But I ask you whether, at a time when men are supposed to sac rifces every pleasure-it is right for you to scatter your polished and bequilting utterances [MASK] through the land to tempt men from their toll to revel in your poetic eloquence9 I leav
+    (1870) Men have such nnmbers on hand that they eAhho, manage them with an eye 10 thsir improvement, They will probably assemble their herds once q year, mark and brand such as require it, select out al that can be sold, aud let tho residue run [MASK] over t
+
+Sense 3: best / highest / greatest
+  emerged: 1860   share of sample: 14%
+  context words: sense, people, man, best, men, country
+  examples:
+    (1920) In the first place, President Harding and the leaders of the Republican party realize that the two chief needs of the country are resumption Of business along its [MASK] lines and relief from the burden Of taxation.
+    (1910) The [MASK] kind of reciprocai agreements are authorized by the Underwood bill, such agreements being subject only to the ability of the pres ideat who negotiates them to get them ratified by the house and the senate.
+    (1880) Hats and bonnets are at discount ut Saratoga, however, since lady NAV 90 anywhere bareheaded, or perhaps only veil pinned over her face, even in the [MASK] glare of daylight, having usually the shelter of parasol.
+    (1900) Deputies in the auditors Office believe they have made a discovery For several days past Cupid Frank Haywood has appeared for work in the morning wearing his usual smile, and the [MASK] sort at that, and a red, red rose.
+    (1870) The arrival in Boston Of Father Benson, the founder Of an order of monks of the Anglican Church, and the dedication Of the [MASK] kind of Broad Unitarian church in Cincinnatl, are remarkable events even in America, where the widest extremes meet, and
+    (1880) That cannot be DONE" rs it manly to castieate an old man like me, and not permit him to reply to the boy who attempted it?o Mr.. Kelley roared in his [MASK] brogue.
+
+Sense 4: widely / away / home
+  emerged: 1890   share of sample: 17%
+  context words: sent, spread, scattered, state, country, new
+  examples:
+    (1890) only one union our ~ the r has not agreed 10 strike and That Is the printers " 49,, A., The news spread [MASK] tonight that the hundred or more Anarchists In Chicago had NOT 81 D.. masses their Destructive doctrines mas tended 10 Increase the excitem
+    (1860) THANKSGIVING DAY.-The unfavorable weather of the previous day gave little promise of pleasant Thanksgiving day, but early risers yesterday were gratiiied to observe clear sky and the sun rise and send his radient smile [MASK] TO cheer the hearts of t
+    (1910) LONDON, Dec. ga bankers APP peal has been spread [MASK] urging rigid economy by every citizen to help England raise nine billions OF dollars.
+    (1880) The uninitated peruser of these lines FAUST not I'M agine, however, that the intelligence of this unparalleled discovery vas at once transmitted [MASK] by word of mouth and per electric wire.
+    (1890) WAsHIgGT0N, Nov. l5.-A story was spread [MASK] last night which seems to have had its origin in gossip mt the Metropolitan clIfb in this city, that there were strong dissensions in the cabinet on the Hawaiian situation.
+    (1910) The treatment accorded the visitor to our town at that time, the fact tina grating and overcharges of all kind were tabooed, and that the hospital ity of the town was proffered all, hal been carried [MASK] by those VIII, participated In the entertain
+
+Sense 5: radio / located / held
+  emerged: 1920   share of sample: 31%
+  context words: radio, seed, sowing, program, acre, new
+  examples:
+    (1890) All the mountains of Japan are of I'M questioned volcanic origin, and Full stands where Hondo, the main island, is [MASK] About twenty craters are still active throughout the islands, but Fuji-san belongs to the much greater number which are now inac
+    (1920) There are two radio engineers at each relay point as we'll as a half dozen at each end of the line Thus more than 60 engineers are busy during the hour preceding a transcontinental [MASK].
+    (1890) and no one would recognize in the well-groomed young man OF exquisite manners and he [MASK] of broad English accents the workmen who dug bitches for Illinois far mers for $50 a month and keen, and talked social problems with his efnn,ovar after the c
+    (1920) I'd Smalle and Lou Raderman will take part Three Ehows-one now passed into memory-sre represented in the music which viii be heard during the half hour [MASK] Of the Hoover Seutinelg al $50 O'Clock The present popular success.
+    (1920) The Cities Service hour, Larry Brier's Tuneful Troupe and another Evening in Paris" episode are among WRC'S other attractions FrillS have been added to the Cities Service [MASK] to mark the anniversary of the seventy eighth weekly program.
+    (1910) [MASK] and hammered into thu heads Of people that there will surel, be something doing in Pensacoia, and that they are at first invited to III, town!

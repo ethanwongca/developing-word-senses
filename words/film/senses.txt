@@ -1,0 +1,57 @@
+'film': 5 senses (national sample of 8,866 uses)
+Label = BERT's most likely words for the masked slot in that sense's uses.
+
+Sense 1: layer / layers / bit
+  emerged: 1860   share of sample: 13%
+  context words: water, surface, covered, oil, glass, eyes
+  examples:
+    (1900) Now the only hint OF her COM ing WAS silver haze, which divided the sapphire sky from the sapphire [MASK] OF cloud yelled the stars and there but light enough In the azure night TO show who approached the high bridge flung across the ravne of Ste Dev
+    (1900) for the little [MASK] of wax will prevent the formation of rust.
+    (1860) The sky-which bends enamored over clusters of graceful palm trees ringing some slow wmovingstream, or groves OF dark motionless expresses rising up like Gothic spires from the midst of white, f1at-roofed villages-is of the deepest, darkest purple, un
+    (1900) almost boiling, rays of the sun beat vertically down from a deep blue dome of sky that is unlocked by single [MASK] of cloud, and reflect back with added Intensity of suffering heat from the parched, baked and cracked earth and from the surface of se
+    (1900) A slight [MASK] Of kerosene oil on the drink Ing water will often cure mild colds in 4 few days.
+    (1880) Table knives and forks, and other steel articles to be laid away, if rubbed with the slightest [MASK] of this lard-resin mixture.
+
+Sense 2: filling / congress / coming
+  emerged: 1860   share of sample: 32%
+  context words: street, said, miss, mrs, new, day
+  examples:
+    (1870) [MASK] ever around this way agin, and you've got any more coats to try on I'll do all | can to help you Pr Detroit Free Press.
+    (1880) Joint, and was SO heavy as to be uncom, Portable There was jeweIed necklace OF hammered gold, which was worn BY one OF the tayorites in the court OF Louis \ ~ and pair OF Truscan gold earrings OF hns | [MASK] texture more than two inches iong' which 
+    (1860) Mol ing seems to annoy [MASK] go much as peace.
+    (1870) Great were the lamentations of all at the loss about TO be sustained by the profession, in the death OF one they regarded as it's great est ornament; but Desmoulins spoke cheerfuliy to his practitioners, assuring them thai he had lett behind [MASK] t
+    (1860) [MASK], Newport Post Office, Declare.
+    (1860) Mr.. johnson has long been known by his picture Of The Old Kentucky Home, '-painted ten or afteen years ago-which gave [MASK] his place 10 New York as a genre painter equal to his subject, OF an admirable humor, free from vulgarity, and comparable to
+
+Sense 3: layer / skin / light
+  emerged: 1860   share of sample: 19%
+  context words: eyes, eye, water, surface, white, glass
+  examples:
+    (1870) I.ss Vapor is brought to that condition BY intense heat, that it forms sort of [MASK], or atmosphere.
+    (1890) But then the haste with which these " on the spot" pictures are made, from the time an X-ray penetrates the darkness to enable objects to impress the sensitive [MASK] in the camera, to the time that nature etches the metal surface is so short from st
+    (1880) Their presence may be often known by the horses running at the eyes, showing their infamed condition, and when the cause is not removed, the eyesight becomes impaired by a partial [MASK] or weakness.
+    (1870) The oil foru>s a sort OF [MASK] over the shell, there by preventing the two immediate causes Of decompGsition-eyaporation from and penetration ofair into the egg.
+    (1870) Our own familiar world not yet half known, Nor loved enough in tihts Of Paradise Lies there before us, now so lovely grown, We wonder what strange [MASK] was on our eyes Ere we climbed hither.
+    (1880) Upon the surface of syrup thus adulterated [MASK] or pcllicle forms upon exposure to tho air.
+
+Sense 4: picture / movie / story
+  emerged: 1890   share of sample: 21%
+  context words: picture, shown, feature, pictures, new, moving
+  examples:
+    (1910) "HIS [MASK] does not carry a story.
+    (1920) Dental science has long sought to solve the problem Of that [MASK].
+    (1920) Why not keep them so7 Millions of people now daily fight that [MASK].
+    (1920) The reason lies in that [MASK].
+    (1920) The reason lies in that [MASK].
+    (1920) ut ig source Of qualification 60 me that the women nro all on my side and the only opposition TO my proposed [MASK] comes from men" SHE srid today at her father home here.
+
+Sense 5: movie / main / stage
+  emerged: 1910   share of sample: 15%
+  context words: company, picture, new, star, corporation, version
+  examples:
+    (1920) The two theatres increased their chain of [MASK] houses to nine, with a total annual revenue of 3775,0oo.
+    (1910) When the noted stage and [MASK] actress arrived at Savannah she was so happy to be back "in EiXie" that Director VIII S. Davis had much trouble in getting her to do her work, but once started Miss Pearson put Il soul into her acting which is plain, l
+    (1920) It is believed that this photoplay will go down in [MASK] history as one of the classic productions.
+    (1900) Several [MASK] houses have representatives on the ground, and they have been securing preliminary pictures today, to work in with their moving picture representations of the scenes of the registration and the Custer fight.
+    (1910) will make her Berlin debut at the Chat Noir on tie evening of November l. Miss Beverage went abroad to do [MASK] work.
+    (1920) Los Angeles, Feb. 16.-While detectives searched the files of telegraph companies for messages received OF sent by William Desmond Taylor, slain [MASK] director, during the weeks preceding his death in hopes of finding a clew to his murder and the mot

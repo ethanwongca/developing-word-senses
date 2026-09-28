@@ -1,0 +1,57 @@
+'record': 5 senses (national sample of 9,698 uses)
+Label = BERT's most likely words for the masked slot in that sense's uses.
+
+Sense 1: list / mention / history
+  emerged: 1860   share of sample: 16%
+  context words: said, shall, years, new, court, state
+  examples:
+    (1880) Its just | pride and browning glory is to be found in the long [MASK] of what it has ac| complished.
+    (1890) Oct. 14-In reply to many telegrams concerning the steamship City OF Rome salu u have been wrecked OH the COAST vi Ne" "iouHV1"' while on a voyage TO this port, it may be sald tha' there is no [MASK] here of any such vessel St. Shotts is hamlet four m
+    (1890) THE RICHMOND DISPATCH of January LIST contained complete [MASK] of Richmond for 1892. showing the progress that city had made in the march Of industry and general development.
+    (1890) There is no [MASK] on the company's books of the deposit, and the bank book has not yet been found
+    (1920) indeed, as the Chicago Tribune sees 1t, "a [MASK] and Interpretation of New York life of the times" and when Bernard Shaw's Mesopotamian civilization be gins sending explorers and travellers to see the ruins of the United States, st. Thomas Church in
+    (1870) In this enlightened age, wnen facilities for acquiring knowledge are SO numerous and the daily [MASK] OF transactions Is within the reach OF ALL he must g dead In ignorance and apathy who does not know the news OF current events.
+
+Sense 2: law / bankruptcy / appeals
+  emerged: 1860   share of sample: 30%
+  context words: said, county, office, day, court, deed
+  examples:
+    (1870) This bill proposes to appropriate S3SO,S2I 10 paw claims growing outOf John Morgan's S raid into Ohio: to authorize incorporated manufacturing companies 10 capitalize their debts and issue preferred stock; 10 provide for [MASK] trials before the Suqr
+    (1860) andlgood mans death kas received, and one crime less would hsfs been [MASK].
+    (1910) according 10 best information at hand Governor Curr, Intended and evidently thinks he lid parole Telics in 1905, hut made M order or [MASK].
+    (1890) The bill of John Reilly for repairing amounting to 81, 150 was cut down &c bl,079 on the recommendation Of P beIbuluNL duu hOUtEL EuBllSu, WIZ were engaged to inspect the work Before putting the motion to a vote Mr. Donnelly stated he wished it to b.
+    (1920) Ahlett does not claim for 1t more than that a blind man can draw the plan or design of something he wishes to [MASK] and explain.
+    (1860) On quack med icInes they have reduced the tax and removed it from affidayits and acknowledge ments and to put on deeds [MASK].
+
+Sense 3: earth / display / average
+  emerged: 1860   share of sample: 8%
+  context words: said, county, time, state, went, new
+  examples:
+    (1900) 1t Is on [MASK], narrower that his div ing powers were Attia short of marvel Gus: small chance 5tndesd.
+    (1880) The receipts of coal in Cincinnati during the last year were the largest on [MASK], 4S, 199, ,246 bushels.
+    (1900) This company is or ganized and the charter is being pub lished preparatory to being put on [MASK].
+    (1890) McCreary desired to place on [MASK] his tribute OF respect and admiraton for the chairman OF tie Foreign Affairs Committee.
+    (1860) Kurtz, started from the Cap- tol, on the 18th of December, and travelled by land to San Diego, about 800 miles, and returned on the 2sth December, making tl O entire distance in ten days, this being by far the quickest trip on [MASK] The usual mode o
+    (1910) the senate committee should play the game out and put the Norton triumverate on [MASK].
+
+Sense 4: tribune / company / report
+  emerged: 1860   share of sample: 19%
+  context words: said, new, says, chicago, court, year
+  examples:
+    (1920) We have no desire to say, eve told you So" It is pleasure enough to meet up with so many former active league farmers who are big enough to admit they got the worst of it, and to frank ly acknowledge that they have bet ter opinion of the [MASK] row t
+    (1880) Call, Yesterday, to print in the Congressional [MASK] the memorial of the constitutional convention of Utah, was called uu by that gentleman, who asked that 1t be adopted.
+    (1900) Perry Thompson was one of the number, who were made new voters, and began the [MASK] right by casting his first vote for no license.
+    (1890) 1.-THE Cuban army wants to prove that it was one Of the greatest aggregation of fighters the world has ever seen, abundaut evidence can be found in the pages of the Congressional [MASK] and the yellow journals, and it seems rather ungracious, to say 
+    (1890) No daily newspaper in the world has a J more picturesque Office than that which The Congressional [MASK] maintains at the Capitol.
+    (1910) Washington, July 3.-The official estimates Of the cotton crop report for 1911 indicates 1t will be the largest in the history of the country approximating, according to present figures made public today, 14,425,900 bales, exceeding by almost one mill
+
+Sense 5: reputation / progress / experience
+  emerged: 1880   share of sample: 27%
+  context words: new, year, man, years, good, time
+  examples:
+    (1910) There was heavy realizing from the start, but houses with Liverpool connections were big buyers, while there was considerable support from trade interests and the active months sold 43 to 46 points above Mondays closing figures shortly after the call
+    (1910) Up to 2 o'clock In the morning his clinical [MASK] was regularly taken, but shortly after that time he fell into deep slumber from which no did not awaken until long past daylight.
+    (1900) 1t is probably the first time where a [MASK] was ever made in county office by the aid of n telegraph instrument.
+    (1920) new [MASK] for solo endurance flying.
+    (1920) subcommittee appointed, the ars were enabled to establish some 1g of a [MASK] for expediting the R cut out for them.
+    (1880) There are but few men in Americaa politics to-day who can show rs clear a [MASK] or as deserving and honorable career as Mr.. Harrison.

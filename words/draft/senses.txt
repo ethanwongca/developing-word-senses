@@ -1,0 +1,57 @@
+'draft': 5 senses (national sample of 9,887 uses)
+Label = BERT's most likely words for the masked slot in that sense's uses.
+
+Sense 1: check / mail / account
+  emerged: 1860   share of sample: 36%
+  context words: order, money, bank, letter, check, registered
+  examples:
+    (1890) they had Just received 100000 in [MASK] which had been given in payment q claims there.
+    (1880) 1t would seem early in the season for [MASK] upon the cheerful giver, but the grasping hand OF monopoly, greed and coru ption is upon the lhroats of the people, and probably the most important lesson that could be taught the rising generation is char
+    (1920) checking [MASK] by let | ting more air into smoke pipe, is one the best general rules.
+    (1860) der Of March last requires that the amount Of men raised BY voluntary enlistments be made up to April 18th, and [MASK] be made q soon thereafter - practicable.
+    (1880) o, for proud maiden to look on me coldly, Freezing my soul with glance of her eyei Then o, for [MASK] from cup of cold pizen!
+    (1900) ment was considered further by the cabinet, and after q change Of word or two from Monday nights [MASK], Secretary Cortelyou was directed to make II public.
+
+Sense 2: make / prepare / pass
+  emerged: 1870   share of sample: 12%
+  context words: committee, appointed, resolutions, meeting, city, report
+  examples:
+    (1880) The president announced the following standing commit tees to-day: To [MASK] a memorial to congress-Moody, Booth.
+    (1890) tive convention of the people to [MASK] u constitution and establish general sys TEN of independent government for the island In the meantime and SO long as we exercise control over the island the products of Cuba should have u market i'm the United 
+    (1870) If legislation be necessary the city authorities should [MASK] law for the purpose and ask that it be one of the first to be enacted at the next SEES sion.
+    (1870) By Mr.. Driscoll: Resolted, That the committee on centennial al fairs be required to [MASK] bill and To present thi, house at their earliest convenience, create fund providing for the soldiers Of the 1872 to visit Of July, is7s.
+    (1880) pointed committee to [MASK] suitable reso.
+    (1890) DR.. Cranz has decided therefore to place responsibility where it belongs, and to-day his attorney, Thomas D. Riordan, will [MASK] formal charges and present them to Governor Gage with a demand for an immediate and public investgaton.
+
+Sense 3: version / copy / form
+  emerged: 1870   share of sample: 13%
+  context words: committee, new, treaty, states, said, proposed
+  examples:
+    (1920) While reports emanating from Paris to the effect that the council modif fled and softened the tone of the first [MASK] OF this reply to Mr.. Wilson are denied.
+    (1910) Dutasta, secretary of the confer ence, to place before him the text of the skeleton [MASK] of the treaty.
+    (1900) This in terchange of views will be made the basis of the first [MASK] of the measure.
+    (1920) McNary will begin a [MASK] of The rev measure at once.
+    (1920) A tentative [MASK] OF uniform State
+    (1920) The preamble to George Mason'5 Bill of Rights in diets the King for his attitude III neEativing Virginia laws against slavery The first [MASK] by Jefferson Of the Declaration of Indcpendence said the same thing in effect.
+
+Sense 4: tax / service / school
+  emerged: 1900   share of sample: 20%
+  context words: horses, horse, light, heavy, new, men
+  examples:
+    (1900) Best [MASK] team, SIS and S. Best pair mules SIS and IS.
+    (1910) This is great [MASK] aid.
+    (1910) Provost Marshal General Crow der on Tuesday called on the governors of all states except Illinois for the mobilization between July D and % of 10000 white [MASK] registrants quail fed for general military service.
+    (1910) I'll be d--d where's that bighter Of [MASK] man gone TOT There's his rifle leaning against the parapet He must have legged II.
+    (1920) Cistern filled by gravity ditch, which also irrigates land Good house, barn and pack ing house; all the tools and ma chinery and livestock goes with the place including unusually val liable [MASK] team.
+    (1870) It is not uncommon fault with mauy [MASK] horses that their eyes are small, dull.
+
+Sense 5: law / war / year
+  emerged: 1910   share of sample: 19%
+  context words: men, new, war, states, law, service
+  examples:
+    (1920) the [MASK] opens and the fan is started.
+    (1890) The men comprising the [MASK] are short-timers and over-tlmers who are transferred to the receiving ship Vermont at New York Navy yard for discharge.
+    (1860) INBrAaAPoL1s, Oct. S.-The Indian apolis correspondent Of the Cincinnati Commercial says that the Copperheads of Hartford, Blackford county, collected on Monday and forcibly resisted the [MASK] They destroyed the ballot box and enrolling papers, and e
+    (1880) The fret or Glow motion is obtained by bevel gear, and tho quick motion by tpur Or straight gear With this most ample arrangement Of gearing friction 10 reduced TO the minimum; weight equally distributed and great durability secured, The [MASK] arran
+    (1910) The student end of the [MASK] is not serious.
+    (1870) Explain yourself" swell, my man here, who was on duty at the lookout, saw you and there the coast guard gives jerk with his thumb over his shoulder and the young gentleman that was making the [MASK] come into the woods together, and few minutes after

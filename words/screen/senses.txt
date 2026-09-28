@@ -1,0 +1,57 @@
+'screen': 5 senses (national sample of 9,471 uses)
+Label = BERT's most likely words for the masked slot in that sense's uses.
+
+Sense 1: protect / save / hide
+  emerged: 1860   share of sample: 11%
+  context words: guilty, man, public, unhealthy, men, said
+  examples:
+    (1860) IL was thy country's future fame That urged thee from thy home so dear To [MASK] thy government from shame That freedom might TO all appear; And nobly didst thou act thy part, There can have been no braver heart!
+    (1870) proportions as to make it power in the land, and enable it to buy up and [MASK] as many rogues as the Credit Mobilier did.
+    (1870) The Alghanistaus and Zulus are no more barbarous and murderous than the people of Mississippi, who are represented in Congress by men who applaud their crimes and [MASK] them from punish ment.
+    (1860) naughty, careless, trouble some thing, always in mischief; 90 up stairs Gill send for you" And this was Q Christian mothers answer 70 the fearful little cuprit, who had struggled With and conquered temptation TO tell fasebood % A to [MASK] the fault 
+    (1860) know its root and feel that united, dete , mined blow would forever [MASK] US fro : this evil; but worshipping the fashio .
+    (1860) Meantime some fnol4 In regard to Haes's career came to light, end ths1 suspicious that he wropgfuly caused the arrest his vito and her father in order TO [MASK] himself III package OF bills which he alleged Lad been substtlts ior tie original ones.
+
+Sense 2: wall / door / window
+  emerged: 1860   share of sample: 35%
+  context words: wire, room, window, large, feet, tho
+  examples:
+    (1900) The snore OF James Weber was his undo ing when he was In the house OF Ambrose Perkins for the purpose of burglary in Youngstown, o: He had effected an entrance by removing [MASK].
+    (1870) A LARGE sponge hung i'm the room at night or in the day time if IL can be behind convenient [MASK] and kent constantly wet viii greatly assist i'm Keeping room cold, or wet cloth hung in the window over the blind will cool the room as il shower had f
+    (1870) This vas fastened to [MASK] which looked as much like a huge letter L as anything.
+    (1890) The screens are graduated, and each has a hopper discharging into the next lower [MASK].
+    (1860) The, ,spider stretches his silvery [MASK].
+    (1870) manner The new dinner cards at Tiffany's are in the shape of a folding [MASK] The handsomest bonnets at A. T. Stewards have the pointed Marie Stuart brim.
+
+Sense 3: open / double / new
+  emerged: 1890   share of sample: 10%
+  context words: doors, door, wire, room, porch, windows
+  examples:
+    (1900) FOR RENT-UNFURNIsHED NEW, 3 rooms, [MASK] porch, front porch; modern, close in; plenty of sun.
+    (1890) Four rooms with [MASK] porch.
+    (1890) Four rooms with [MASK] porch.
+    (1910) WANTED-By healthy young lady, room with bath and [MASK] porch.
+    (1910) such as in Autumn, when [MASK] doors are taken down.
+    (1910) [MASK] doors, being lightly construct ed, are often inclined tn sag, even though in use only short dime.
+
+Sense 4: film / new / wire
+  emerged: 1910   share of sample: 26%
+  context words: author, wire, new, stage, work, star
+  examples:
+    (1860) 3UO OR Huss TO Burr Huss, lot no [MASK] Greek, III acres, 1908 Burr Huss To O Huss, lot no 4 Green Greek, IN acres, 1000 A G Lyon to Geo Miller, II 81, 80 Leppleman & Door to F s White.
+    (1920) Wallace Reid in a new [MASK] COM e6y, "The Dancing Fool" will be the attraction for Friday.
+    (1910) Gaumont News and [MASK] Magazine completed the show.
+    (1910) This microscopic study included products from [MASK] analySEES of crushed ore. in order to ascertain the size to which the ore should he crushed to liberate most of the mechanically combined mineral par ticles.
+    (1910) ''It is cheering to note the growing dis position of your 'Footlights and [MASK] editor to lambast the questionable and the unclean in the movie drama" said w. H. Vim.
+    (1920) Lessons IN Love" is [MASK] version of Douglas Alurrays play, The Man from Toronto.
+
+Sense 5: stage / door / film
+  emerged: 1910   share of sample: 17%
+  context words: picture, thrown, pictures, story, shown, stage
+  examples:
+    (1890) Sudduth, and In the evening Prof. W. x. Sudduth gave most interesting lecture on the subject "Predisposing and Exciting Causes of Decay of the Teeth" illus trated by large number of photo monographs thrown upon the [MASK] by the use of the oxy-hydrog
+    (1920) The problem will go on until the objectionable films are driven from the [MASK]" the report concludes, for back of it is the Irresistible force of the moral sentiment of the entire world" Another Phase Condemned.
+    (1910) whose ikenesses were thrown upon the [MASK], preceded by Song of mem ory' A feature of the evening was the appearance of a large sized aeroplane.
+    (1920) with capital "P." He registers off the [MASK] even better than on.
+    (1910) The views that will be thrown on the [MASK] will Illustrate the different methods of road building and the lee ture should prove of unusual interest TO the highway men.
+    (1890) local:types of character and yiewk wnich had IA strong Favor of the Midway plaisance were thrown upon the [MASK], making most delightful enter tainmeDt.

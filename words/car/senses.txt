@@ -1,0 +1,57 @@
+'car': 5 senses (national sample of 9,241 uses)
+Label = BERT's most likely words for the masked slot in that sense's uses.
+
+Sense 1: carolina / van / john
+  emerged: 1860   share of sample: 33%
+  context words: ried, new, city, tho, state, street
+  examples:
+    (1860) to come to shore and submit TO an examination of her [MASK] go.
+    (1900) [MASK] 70 Twenty second TO Ous doc-.
+    (1920) W. J. Davis is driving new Dodg, [MASK] Mr.. and Mrs. Gail Faulkner mo tored to Douglas Saturday afternoon
+    (1870) bush Co o;s 200 Sa'e G a Snia dull Hs Red o. stead, and S sSa'Ts %se 81: &c. Fsoa% d,1 ws,s e'1 in [MASK] c S II % small lots 2E0s o %, se nd io%s saf'isd % co %A'., nS%p: %and :pa ssd Sssss o 7s5sc New 6 and Doe ,Inm.y gay oil and $ Bs s. s 4 sfsc c
+    (1870) hold was not noted for its cheerful echoes of infantile voices and must cal clatter of little feet, we'd watch that mothers exit and if either of the cherubs dropped asleep we would see it got a wing to shelter it, Strange to say they were both mappi
+    (1870) The friends of each candidate, instead OF working to [MASK] ry primary elections and conventions in his favor, would work for him before the people.
+
+Sense 2: truck / train / large
+  emerged: 1860   share of sample: 12%
+  context words: loads, load, lots, new, cars, shipped
+  examples:
+    (1910) 1t has been well equipped and has additional [MASK] storage space.
+    (1920) Plans for [MASK] purchases also are being worked out by the railroads.
+    (1890) For an pupils living below SECOND street a liberal deduction VIII be made on account of [MASK] fare.
+    (1890) Thirty [MASK] handlers employed on the Lee high ;restie on the wster front stopped work this afternoon AMI told the yardmaster they wou!d not resume until grievances of the switchme were settled.
+    (1920) minal for [MASK] storage and [MASK] classification.
+    (1870) When you have empted your eli ent's pockets hand him money enough to pay his [MASK] fare home, This is an innovation OF the established practice, but it is more blessed to give than receive.
+
+Sense 3: train / room / service
+  emerged: 1860   share of sample: 24%
+  context words: train, sleeping, new, street, cars, passenger
+  examples:
+    (1880) the conductor opened a box [MASK] to put OIL some freight, when he observed a stalwart ne gro crouching behind the packages of freight.
+    (1920) The five passenger Ford [MASK] stolen from Bovill recently, has been recovered at Grangeville.
+    (1880) The train reached Trenton ate m At this point GepSSsw ellis private [MASK] was attached The railroad yards and the station were scr6wded witt people.
+    (1900) On her special travelling [MASK] Mime Patti has silver bath opened by q golden key.
+    (1910) 5-PASSENGER WASHINGTON [MASK]; 2-pa assenger Washington [MASK]; 1910 s. cylinder Winton Touring [MASK].
+    (1890) The four trains are identical in appearance and arrangement Each is composed of buffet smoking-librarvcar, a palace sleep ing-[MASK], and two reclining-chair cars.
+
+Sense 4: train / room / station
+  emerged: 1870   share of sample: 22%
+  context words: train, man, said, men, time, cars
+  examples:
+    (1900) A longer wheel base and higher body gives the [MASK] an appearance of being much larger.
+    (1860) The [MASK] were much damaged.
+    (1910) think the radiator on my [MASK] is stop ped up, as | have a great deal of trou bic with the engine running hct.
+    (1870) The [MASK] and party reached buckingham Palace at noon.
+    (1900) laid my controller and reverse lever on the platform of his [MASK] and told him il he wanted to lick me there was plenty Of room in the street He told me 10 take those things off his [MASK] and when | stopped 10 take them up hc kicked me in the stoma
+    (1910) The [MASK] is sup piled with electric lights, telephones, beds, bath tub and kitchen utensils.
+
+Sense 5: railway / bus / vehicle
+  emerged: 1880   share of sample: 9%
+  context words: street, line, company, city, new, motor
+  examples:
+    (1890) Sierra Valleys Railway Company, Pull mans Palace [MASK] Company, and Atlantic and Pacific Railroad Company.
+    (1890) June l.-Several months ago Attorney General Mahoney began quo warranto proceedings against the Pull man Palace [MASK] company for the our pose OF taking away the company'e charter and terminating its corporate existence.
+    (1880) An entire new service is nov being completed by she Wagner Palace [MASK] company.
+    (1880) The Pullman Palace [MASK] Company has in formed the secretary of the Elmyra Board of Trade that it has abandoned the idea of having Eastern shops.
+    (1880) Our equipment was built expressly for this line by the Pull man Palace [MASK] Company, which Is guar sntee to the travelling public that Il Is strictly first class.
+    (1910) The Indian School [MASK] line inter sectS the tract, giving convenient [MASK] service to the city, and north to the Indian School and Glendale.

@@ -1,0 +1,57 @@
+'trust': 5 senses (national sample of 7,000 uses)
+Label = BERT's most likely words for the masked slot in that sense's uses.
+
+Sense 1: hope / believe / know
+  emerged: 1860   share of sample: 9%
+  context words: good, sincerely, viii, people, new, make
+  examples:
+    (1880) If there is another firm in the country who can better meet the wants Of the people gen orally than they, then they will "yicld the palm;' but SO long as everything is favorable to continued patronage, they <mask> they shall receive it.
+    (1920) That is what brings us to Wash ing on, and, if, as I <mask> we all go there in a spirit not merely of hope and sincerity, but of fixed determin- ation to convert the presidents lofty aspiration into a practical working agreement, the war will not hav
+    (1860) II Will you do it We <mask> you will not.
+    (1860) We <mask> a liberal response TO our appeal, on the part Of benevolent citizens, will enable the Relief Union to meet the just claims Of the deserving poor.
+    (1900) This is a reason able and an opportune proposition, which we <mask> will be generally needed in our State
+    (1860) his feet \ happy augurv, we <mask>, that the building, Sacred to his name is to.
+
+Sense 2: faith / office / ask
+  emerged: 1860   share of sample: 16%
+  context words: man, men, god, people, shall, said
+  examples:
+    (1860) <mask> in God.
+    (1920) at home and <mask> to the chemists to produce every necessity and most of the luxuries.e No longer need we be dependent upon the potash deposits of Germany If we make our own fertilizers.
+    (1870) Pray <mask> to me, and will lei you know when we shall get there" The passenger thereupon relapsed into sill ence, and the official, engrossed with other du ties, forgot bis case until the train had left Poushkeepsie about half mile to the rear when,
+    (1860) The masses of the Southern people am prepared to <mask> because believe they have been deceived by ambitious and designing leaders With Congress will rest the power TO protect itself and coun try against disloyal candidates seeking admission into our
+    (1860) friends and ser wants, hope and <mask> to meet you J. haeven.
+    (1890) 1t is occasionally possible to judge a horse by his pedigree, but never <mask> to it with the human family.
+
+Sense 3: sale / grant / purchase
+  emerged: 1860   share of sample: 18%
+  context words: deed, said, virtue, sale, day, secured
+  examples:
+    (1860) Trustee IN a, certain deed Of <mask> from Richard dated 7,h February, 1860 duly recorded in Rich mond Hastings Court, / shall.
+    (1890) WHEREAS, F. w. BUCKLEY OF THE county of Monterey, State of California made certain deed of <mask> to FRED NJ WEST and w. W. WESTBAY, dated October is.
+    (1860) o. o, a certain deed OF <mask> from Ludwell Brackett 70 me the osth day OF April 1880. and duly recorded IN the Clerks office OF Hcnrico County Court snail.
+    (1890) BY virtue of Il certain deed of <mask> to u.s. dated December 7, 1892 and duly recorded in Iiber No 1855, folio 144 ct seq, Of the land records OF the District OF Columbia, and at the request Of the party secured thereby, we, the undersigned trustees
+    (1870) NY VIRTUE OF A DEED OF <mask> Is made by Peter SChlernltZauer ana Catherine SchlernitZauer, his wife, dated the SOth day OF April, 4. p. 1915, and recorded in the Office OF the Clerk OF Jhe comfy Court Of ohio county, West NlTginia, in deed OF <mask>
+    (1920) Terms Sold subject to prior deed of <mask> for S. 900; also to SECOND deed OF further particulars of which will he an rounced at time of sale: the purchase price post of 5000 required Conveyanclng rrcost.
+
+Sense 4: company / industry / order
+  emerged: 1860   share of sample: 41%
+  context words: said, deed, company, day, public, sale
+  examples:
+    (1870) Nichols, by his prudent and statesmanlike management Of the many delicate issues growing out of the success OF the party in 1876, and resulting in the firm esEnlistment of the peoples government IN Louisiana, deserves the gratitude OF all L0uislanian
+    (1920) and a second <mask> for $l,T00.
+    (1870) ISIS AZ q cIOek p N ali those parts Of Lots s.ven al and Described as follows: All that certain piece or par, Gel If ground linC in the city Of Washington histrict of Columbia, and comprised within The follow ine metts and bounds: Begi"ning N stree, 
+    (1920) Price, S2I 500 first <mask>, 800, with release clause; $500 per lot.
+    (1880) A public office is q public <mask> has not, as used by him, been merely smooth catchword OF the stump and canvass.
+    (1910) "Why, every ploughshare, every tool and implement the farmer uses, to say nothing Of the <mask> made harvester, is dearer because OF the Payne-Aldrich tariff tax The American farmer pays more for his <mask> made tool than the Russian peasant pays for
+
+Sense 5: insurance / loan / publishing
+  emerged: 1900   share of sample: 16%
+  context words: company, bank, new, savings, loan, york
+  examples:
+    (1900) lola, Kan.-Upon application of Alton B. Parker, acting on behalf of the <mask> Company of America, trustees for the bondholders, J. o. Rogers has been appointed receiver for the Lanyon Zinc company, one of the largest smelling works in the world.
+    (1900) The petition filed to-day against Mrs Chad wick for involuntary bankruptcy makes the charge that Mrs. Chadwick had committed an act of bankruptcy indicating insolvency four months ago by transferring to the Savings Deposit and Bank <mask> Company of 
+    (1900) Fish had deposited funds of the railroad in large amounts with the <mask> Company OF the Republic and its successor, the Common wealth <mask> Company, 10 onatie the company 10 bolster up its accounts and make q good showing OF its affairs.
+    (1920) e The following Newark business places n have the stamps on sale: Louis Hand ,e lofts Department Store; Fader's Garage n Browns Drug Store, Blocksom's, Far v mers' <mask> Co., and Kells.
+    (1880) INTEREST PAYABLE JUNE AND DkoEMbEf MERCANTILE <mask> CO., TRusTSG :, rrhe Phadelohia company paidup easn oapiei " - zoo zoo e operating 700 miles Of pipe, S4ooo " 20 ts,r,,ory 1877 miles Of telephone hnes ana 81 V' phone stations.
+    (1910) Oakley Thorne, president OF that institution said that Mr.. Pernns public statement, given to the press Oct. %, 1907, and declaring that the sore point In the panic is the <mask> Company of America" had precipitated a run on his institution that had 

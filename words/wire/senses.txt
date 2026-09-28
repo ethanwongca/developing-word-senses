@@ -1,0 +1,57 @@
+'wire': 5 senses (national sample of 7,000 uses)
+Label = BERT's most likely words for the masked slot in that sense's uses.
+
+Sense 1: line / lines / cable
+  emerged: 1860   share of sample: 23%
+  context words: iron, barbed, telegraph, miles, electric, steel
+  examples:
+    (1910) and the shafting for machinery is nothing more or less than big round <mask>!
+    (1920) Never touch loose <mask> unless you the other end and know that there danger of being attached to electric light power line.
+    (1910) knit socks, erect forts, roll armor plate, draw <mask>, mine metal and fuel, mix explosives.
+    (1870) At ths crossing Dc th1 narrow nauge railroad near the north cente 81 Machinery i Hall, = telegraph DARN has becn constructed, simila y the alarms used In the "hlnck sys toin'' On The Fenasyivania Railroad A telegraphic <mask> laid under tn track.
+    (1900) and the court house partially unroofed A dray horse was electrOcuited by n live <mask> on the ground.
+    (1920) When the spark gap Of a plug Is 90 great there Is danger Of burning ut the secondary <mask> Of the coil from he heat engendered by the excessive eSlstance.
+
+Sense 2: iron / wooden / steel
+  emerged: 1860   share of sample: 26%
+  context words: fence, rope, iron, barbed, steel, new
+  examples:
+    (1900) 1t has the strong <mask> cage witn'which every Am ricau dweller irfcities is familiar.
+    (1890) The glass, which is exactly one-quarter Of ali inch thick, contains in the centre <mask> netting.
+    (1880) There are now about five hundred miles of rabbit of <mask> fence ere ted IN he co,onv of Victoria at cost of SEQ a mile.
+    (1870) Mr.. Cooper was the first person to apply with sue cess anthracite coal to the pudding of iron, which he did in rolling and <mask> mill that he had erected in that city.
+    (1860) 22s King street, few doors nurth CT Market.Btreet THE FURNITURE OF FAMILY DECLINING HOUSEKEEPING, CONNECTING OF: DINING TABLE, Sofa, Chairs, <mask> Safe, Carpet, Bedsteads.
+    (1900) Above the box is <mask> cage with an opening in the bottom, affording a passage through the box to the cage above.
+
+Sense 3: read / okay / phase
+  emerged: 1860   share of sample: 24%
+  context words: tho, new, aud, iron, day, telegraph
+  examples:
+    (1870) Five frame buildings <mask> burned in Chenango ILufedA, night MIR Trainer @ emnn.
+    (1860) To avert this unhappy condition, the evidence OF which multiplied around me, felt it due to hrl nanity essential to the attainment OF the objects for which I had been invested with office and COM mand and in accordance with the Just expectations Of t
+    (1910) This sounding <mask> f. rolled on a winch forming part Of an admirable APP paratus as exact 80 a clock, the Ltgcr Sounder worked automatically by steam.
+    (1920) The water there was -Four feet higher than in June <mask> communication from Okla homa City with all points north and west OF Canton is impossible today.
+    (1880) We are sending iurs to Russia, <mask> 20 France, and notions to Great Britain.
+    (1920) In 1914 he merely had Z, supply 40 pounds of beef animal {, get loo pounds OF good fencing <mask> In 1919 it took 141a pounds NOR, beef TO get the same 100 pounds o. <mask> This farmer also kept a few dairl cattle which.
+
+Sense 4: line / telegram / phone
+  emerged: 1860   share of sample: 19%
+  context words: came, end, new, time, heat, received
+  examples:
+    (1870) During the hours 90 business in Wall street he il often at this end of a <mask> running in that direction.
+    (1880) he had q French harmonicon listened to a <mask> and strapped about bis body, so tba.
+    (1920) AS a result of the <mask> the officer seized and confscated one of the roadsters and $50 quarts of genuine old "red" whiskey, but the men escaped in the other car.
+    (1920) Now save the <mask> is on this place, the songs are an unheard.
+    (1860) After a sufficient time has elapsed for the rats to assemble round the oalt an n electric current is sent along each <mask>, ana it is said that there troublesome ANIMALS are destroyed by hundreds.
+    (1890) The parson could't make the trip to the brides home because of snow, sleet and bad roads, so he tied the knot by <mask>, and did't kiss the bride.
+
+Sense 5: rights / air / radio
+  emerged: 1910   share of sample: 9%
+  context words: leased, press, united, service, special, new
+  examples:
+    (1910) FULL LEASED <mask> REPORT OF THE ASSOCIATED PRESS
+    (1910) 10y Leased <mask> to New Mexlcan) Petr0grad, Mar.
+    (1910) BY Special Leased <mask> 10 New Mexicanf Detroit, Mich, Jan. 93-Judge An gell in the United States Court refused today to quas.. the indictments aaginst the so-called bath tub trust.
+    (1910) 10y Leased <mask> to New Mexiean) WASHINGTON.
+    (1910) Leased <mask> Report
+    (1920) Chicago Tribune Omaha lice Leased <mask>, Washington, Sept.

@@ -1,0 +1,57 @@
+'strike': 5 senses (national sample of 7,000 uses)
+Label = BERT's most likely words for the masked slot in that sense's uses.
+
+Sense 1: carry / rule / bring
+  emerged: 1860   share of sample: 8%
+  context words: moved, motion, section, insert, amendment, shall
+  examples:
+    (1860) Mr.. Snodgrass moved to <mask> out $500, and insert $25 per month.
+    (1880) THE coroner's Jury which investigated the Exeter Theater fire, by which over 100 lives were lost, GEN. sured the authorities for allowing the building to be used as a theater and added that 'sthe jury unanimously consider the non-supply of any refres
+    (1860) Mr. MILLER moved TO <mask> out the words g" with facility after the reading and writing qualification.
+    (1870) But the point Is, said Senator Blaine to <mask> out the few words authorizing the use OF troops to preserve the peace at the polls, aud the country is alarmed, or be would rather say, amazed at the effort made to Gre ate the impression that the Repub
+    (1880) measure there are usually an average OF twenty members WEo desire to move amendments to or <mask> out the measure.
+    (1890) "The men who earn the most money, 90 tar % employees are concerned, In the walkingstick trade are the inventors, the men who <mask> out original ideas In the way OF sam pies patterns, In fact" said the manager OF one Of the greatest stick manufac tur
+
+Sense 2: remove / make / look
+  emerged: 1860   share of sample: 24%
+  context words: blow, did, men, said, time, man
+  examples:
+    (1870) "He wer kapin me from gittin' work and he pulled the coat from me back and" "Did you <mask> him ?"
+    (1870) 1t was in my heart to retort with thump, but | refrained, and by and-by, when | whispered, why did you <mask> me p he answered, Because you stole kiss.
+    (1920) We can <mask> at war taxa tion.
+    (1910) But till the very last he had expected to <mask> 1t rich and when he was taken down with his last illness believed that he would get well enough to dig little lower In hole he was sinking and would <mask> paying handsomely but hundred feet away.
+    (1880) He made up bis mind that he would flock back to the mill and <mask> the old man for another stake.
+    (1870) he he took out his knife and threw it so that would <mask> near the boys and a,,rac, heir attention |.
+
+Sense 3: union / mining / work
+  emerged: 1860   share of sample: 24%
+  context words: men, tho, new, work, said, coal
+  examples:
+    (1920) Ownbey's "lucky <mask>'' cama in the late 90 when he was locating pass over the ROCKIES for the Santa Fe Railroad.
+    (1920) Men den var like nyirksom Den erklerede straks General-<mask> Landet som Modtrak mod den nydannede Regering.
+    (1880) j, Cox executors of the estate of Christopher <mask>, late of said county deceased, for the eXanimation and allowance of their administration account, and the assignment of the residue Of said estate to such persons as are by law entitled TO the same
+    (1860) Keep our Territories free From the curse of Slavery Let your cry of battle be, GoD and Liberty Go forth, Freemen, in your might, Beneath this BANNER, to the fight <mask> for Freedom and the Right GoD and Liberty.
+    (1880) <mask> while the iron is hot This IS the only reliable and most authentic editon published.
+    (1920) <mask> In protest against proposed wage reductions, 1t was announced today.
+
+Sense 4: duty / board / mission
+  emerged: 1880   share of sample: 5%
+  context words: men, went, wages, miners, new, union
+  examples:
+    (1870) LONDON, june N.-The miners on <mask> IN Sooth Wales now number 5000, and there is no present prospect OF a settlement of difficult Ties with companies Fire.
+    (1890) At meeting Of the men ON <mask> ON the Irrk X Bandnn IrlanGy Railway.
+    (1910) These prices might have beer all tight fifteen or twenty years ago, but they are way out of proportion now and they must be recu6ed by the men who went on <mask> and by the citizens who refuse to ride OF the cars.
+    (1920) Before they went on <mask> the young workers received $23 a week for eight hours of strenuous labor.
+    (1920) The result was that the boys were forbidden to play unless all OF them picked weeds, and as they did not cherish the idea of picking weeds, they went on <mask>.
+    (1920) who went on <mask> and walked out Of the convention following Hutchesons autocratic expulsion OF Mulcahey, their spokesman, they were &C companied by shouted threats Of the strongarm gang, which included this one: Wen attend to you later" The assault
+
+Sense 5: war / union / dispute
+  emerged: 1880   share of sample: 39%
+  context words: men, work, coal, union, new, miners
+  examples:
+    (1910) the mon beSnn quitting work today, follow ing notification by the mine nupertnfcndents OF the various companies Ia the effect that the "chcck-oH ky,lem" had hcen abolished because inc miners hnd abroEatcd their CON trHct by participating In the <mask
+    (1920) We demand that all organ lied labor be assessed to win this <mask>.
+    (1890) "Enloin the wretch" is the cry of everybody, whether he be in the clutches of the law, or she political trouble, from Mary Eliza beth Lease, who don't want to be kicked out by the governor of her common wealth, to the judge of federal court, who reso
+    (1900) New York, Aug, lS,--A <mask> was or dered today by the international Broth erhood Of Blacksmiths and helpers In all shops where an advance OF 10 per cent in wages Is not granted, The <mask> affects shipyards principally and 1000 men employed in diffe
+    (1910) ana suspended their <mask> last May lending the boards decision which they.
+    (1910) New York, Oct. 28-A <mask> that will vitaIIy affect New Works mill lions was voted early today by repre- sentattves of 4,5OO drug clerks.

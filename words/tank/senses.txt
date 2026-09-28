@@ -1,0 +1,57 @@
+'tank': 5 senses (national sample of 9,653 uses)
+Label = BERT's most likely words for the masked slot in that sense's uses.
+
+Sense 1: bank / street / end
+  emerged: 1860   share of sample: 28%
+  context words: water, oil, feet, house, tho, new
+  examples:
+    (1890) Citizens knowing themselves indebted to Mr.. Townsend, the old man who [MASK] upon blackboard, should tax every occasion to pay the same to his widow.
+    (1870) Tho [MASK] Is mounted on sprinI and carried on four wheels, with lght-hinge shafts, and the whole Of II is painted bright colOrs.
+    (1910) 3 [MASK] is expected to start next Monday.
+    (1920) [MASK] with water aud let it stand for "A day To clear and settle Put Plants In.
+    (1860) Wind n. w. p.m.-IIard rain from in the morning ill p. N. The mercury then [MASK] to 3S', and it il growing cold fast and snowing CISCINsArI.
+    (1890) [MASK] eight miles east of Mullen, With bullet hole through the brain and weight ed down by the Use OF wires and stones first believed to be man named Kennedy from Bosque county.
+
+Sense 2: water / building / bridge
+  emerged: 1860   share of sample: 20%
+  context words: water, feet, oil, house, time, engine
+  examples:
+    (1890) A little bag holding pint, that can be carried in one travelling bag and filled from the [MASK] in the car, will make a rail way journey on hot day entirely com Portable.
+    (1870) Ia the top Of the [MASK] Ia an aperture, with hose reaching to q charcoal fire.
+    (1890) which protruded outside the [MASK] ana rested upon a support The rodent ate the cheese and then went for the bolOgna.
+    (1900) Stability is also ascertained, for two guides run on either side of the model the full length of the [MASK].
+    (1890) He is a very large fellow, and when he struck the pond in his jump from the 76-foot eminence the [MASK] looked as though it were being lashed by the bolts of JOve.
+    (1910) and the [MASK] then sealed.
+
+Sense 3: pool / house / reservoir
+  emerged: 1860   share of sample: 20%
+  context words: water, large, feet, oil, house, new
+  examples:
+    (1920) FREE Spare tire, kit of tools, license tags and [MASK] full of gas.
+    (1870) [MASK] containing 40 barrels OF coal oil, situated on the premises OF the Laeleue rolling mill, St. Louis, Mo-, exploded at late hour on the night of April "A, killing man named Timothy Brick.
+    (1880) The intention is to build a a [MASK] with sufficient capacity and height to supply the business portion OF the city with water, as we'll as the public build ings, and also for use in case Of fire wherever the pipes may communicate.
+    (1860) built about four years of the best materials and in the most woTkmanlike containing floor parlors and dinngocm store room Kitchen dry, stairs, servants pvies, coal house second floor three elegant we'll ventilated bed and large bedroom back building 
+    (1910) Then he bent down beside it and uncovered a little [MASK].
+    (1920) The third [MASK] to burn exploded early today, shooting flames hun slreds OF feet into the air, lighting the city like day and throwing forth an inferno-like heat that melted nearby communication wires and curled and twisted rails on the Fri co track
+
+Sense 4: tower / pump / tanker
+  emerged: 1860   share of sample: 21%
+  context words: water, oil, gasoline, gas, feet, house
+  examples:
+    (1920) The Warren home is located only short distance from where the K. c. S. oil [MASK] burned year ago.
+    (1920) We have employed the best mechanics operate all machinery and they can do it, We have prepared spacious and comfortable ladies rest ROOM 1t is open a all times for their use Our stock Of Genuine Ford Car and Fordson Tractor Parts is complete Our batt
+    (1920) The revival of the toll system may bring hack the enlarged fuel [MASK] and eliminate the convenience Of numerous gasoline filing stations.
+    (1860) RAILROAD CULoUs EsCAPE.-The passengers on the tram from Lancaster for this City, on TUESDAY, were detained several hours by an accident which occurred at the bridge over Valley creek near DowningtoWn The train Stacked up to cross the bridge and when 
+    (1910) "The engineer of the train said he thought the gas [MASK] in HslifaS had eXploded so he started up the train and we proceeded slowly.
+    (1920) Il guess l got the cid boy hot enough on the two up side down loops SO there was no LONGER any trouble III getting over from ne inverted position" he declared Whl!e sitting in the cockpit awaiting the M ing Of his fuel [MASK].
+
+Sense 5: passenger / water / motor
+  emerged: 1890   share of sample: 11%
+  context words: oil, cars, company, car, new, steamer
+  examples:
+    (1880) The witness stated in reply to series OF inquiries that the stock of the Standard Oil Company of Ohio, the Standard Oil Company of Ken tucky, the Camden Consolidated Oil Company OF Parkersbu'g, West Virginia, the Water Pierce Oil Com pany of st. Loui
+    (1920) Quarles is connected with the Southwestern [MASK] company of Pawhuska ana until his resignation, Monday, has been a member of the board of city com.
+    (1890) She is / playing the part Of the barmaid in one | Of those travelling [MASK] companies nCw.-Twinkles.
+    (1870) We learn that the laborers engaged in digging the we'll fer new [MASK] house at Milton Station, on the line of the North ern Pacific Railroad, have discovered marked Indications or the existence Of q bed of coal in that locality The o. ter Tail River
+    (1920) When I joined the 45th Divisional [MASK] Company here in Denver, heard nothing about any club, but when pay day came, l found that there was a club.
+    (1880) Ohio, the Standard Company of Kentucky, the Camden Consolidated Oil Company of Parkersburg, W. Va, the Waters Pierce Oil Company Of St. Louis and the Consolidated [MASK] Line Company of Cincinnati, was held by the Standard Trust.

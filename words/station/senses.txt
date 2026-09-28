@@ -1,0 +1,57 @@
+'station': 5 senses (national sample of 9,405 uses)
+Label = BERT's most likely words for the masked slot in that sense's uses.
+
+Sense 1: court / white / safe
+  emerged: 1860   share of sample: 4%
+  context words: house, street, precinct, taken, police, man
+  examples:
+    (1880) The owner can obtain the property | BY calling at the [MASK]-house or the other lart OF the watch can be sent to the Chief md he will be about as well satisfied.
+    (1870) Messrs. Beach and Titus are hauling stone and timber for the [MASK] house, which will be rapidly pushed for ward.
+    (1860) LOUISVILLE, June s.-The law passed by the last Legislature, creating a Board of Police Commissioners for the city of Louisville, was this day declared unconstitutional by Judge Stiles in the Court of Common Pleas, and the application by the Police Co
+    (1880) The Solicitor decided that the Mayor could not convert the [MASK] house into a hospital.
+    (1870) a1 narS c sSS, the Key in the door heard afterwards from our fou9dsmsn ng q he oes the oHi.ide The door was saw woman standing near the door, that GOULD ss s o% we % S s @ Of s not speak we carried her TO the [MASK] house shutter after she had been t
+    (1860) Brooks, sworn.-Was at the [MASK]-house ome months ago, and saw negro man who had )een struck over the head the bones of the head we're broken in pieces, and driven into the brain; Dr.. Yeates had removed some of the pieces and elieved the breathing t
+
+Sense 2: street / junction / road
+  emerged: 1860   share of sample: 24%
+  context words: street, railroad, train, miles, near, union
+  examples:
+    (1900) All Illinois Central, Mobile & Ohio and Cotton Belt trains arrive and 20 part form Central [MASK], corner Oh Second street and Ohio street.
+    (1880) Inspector; John A. Bulls and J. J. Cienega-At Park [MASK]; VIM.
+    (1870) At his residence, near Mclrcsc [MASK], on the 10Th instant, JAMES II.
+    (1870) TWO boys about eleven years old, were al rested yesterday by Officers Elder anC Bolleau, and locked up in Third-stree [MASK], for bathing in the river in day time.
+    (1890) be obtained at Providence [MASK] and stations below.
+    (1900) NoTIcE-Having divided my wife's farm at New Church [MASK] into building lots, offer the same at very reasonable prices and on reasonable terms.
+
+Sense 3: town / train / yard
+  emerged: 1860   share of sample: 34%
+  context words: new, city, railroad, street, tho, york
+  examples:
+    (1880) five miles north OF this city, has tried for many years to [MASK] in the city.
+    (1880) II is ia his scope Of country, upon en ample val ey, surrounded by picturesque hills, that he [MASK] of Salisbury IS located.
+    (1910) has returned to [MASK] at Fort Shafter.
+    (1920) We have resumed work on the construction of the new Delawa are [MASK] located on the Delaware River at Beach and Palmer Streets, Philadcph which was temporarily suspended by War conditions in December, 1917.
+    (1880) A business letter to Mr.. A. o. Bailey datei at Argus, Marshall county, the third [MASK] north from Crookston on the St.sP.
+    (1910) one minus rooms: newly decorated; every known i'm provement: everything in first-class conditon: steam heat and plenty of good hot water furnished; excellent janItor service rent reasonable to desirable tenant APARTMENT THE CHARLOTTE" IT'S Main st. E
+
+Sense 4: time / point / hospital
+  emerged: 1860   share of sample: 14%
+  context words: train, time, man, said, railroad, street
+  examples:
+    (1900) The | three left the [MASK], going in the | direction of the church.
+    (1890) The shooting occurred in the [MASK] only n few minutes before the arrival of a pas sengcr train.
+    (1920) 80, northbound over the Atlantic Coast Line in charge Of Conductor Davenport passed at 2:20 this after noon, and in an attempt to swing on to the rear Pullman as the train was slowly pulling into the [MASK], In some way missed his footing and fell in
+    (1910) The women of Chicago gave an enthusastic welcome to the ENJOYS as the specal drew into the [MASK].
+    (1920) Upon landing lne passenger, who is sixty-eisht years or age, expressed delight with the experience and voiced his enthusiasm boisterously During the week 100 planes passed through the [MASK] on cross-countrv missions.
+    (1900) The fog was so thick that the engineers of the two trains were running cautiously and just outside the [MASK] the At lantic City train was signalled to stop.
+
+Sense 5: department / base / center
+  emerged: 1880   share of sample: 23%
+  context words: police, railroad, naval, street, new, railway
+  examples:
+    (1920) Burglars took a pay phone from the Sinclair filing [MASK] at TwentyFirst ST. and Capitol Ave.
+    (1880) lie was refused aid and tho policeman interlered, and when the supervisor himself attempted to make Frederick Gesler, off to tho police [MASK].
+    (1920) O. F. Allen, sleeping over the White Bluffs Trading company store, was awakened about o'clock in the morn ing and going to the window saw the boys prying open the window on the south side of the service [MASK] near the shelf where the cash register w
+    (1920) tlx sh1ildtngs ia Block 20 he sold at Pub : Mc Auet6n on August 29th, 1922. : e: An apple alton o6 Kalleyip Bros and Z; & 13ec klund was presented for maint AN Ing gasoline pump and underground tank On the boulevard at the Forl Service [MASK], No.
+    (1890) OF these l35 were men; AZ women, 153 white; 25 black !, 38 taken to Delaware Hospital; 43 to the Homeopathic Hospital; IS TO their homes; to police [MASK]; Q 10 morgue and 10 false calls.
+    (1900) The Cincinnati, Hamilton & Dayton will build a new passenger [MASK] at Winton Place, o., to cost $4,000.

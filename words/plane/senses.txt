@@ -1,0 +1,57 @@
+'plane': 5 senses (national sample of 9,486 uses)
+Label = BERT's most likely words for the masked slot in that sense's uses.
+
+Sense 1: level / aircraft / city
+  emerged: 1860   share of sample: 56%
+  context words: datum, feet, street, grade, shall, intersection
+  examples:
+    (1870) where proving himself to be first class mechanic He worked at undertaking in England from the time he was able to shove [MASK], until he came to America, and with this experience ought certainly to be master of that branch of his trade.
+    (1890) 3 Smooth [MASK]......... LIS Bailey's Iron Jack [MASK].
+    (1870) The following meetings are an nounced: TUESDAY, ocToBER2 Warsaw Pike, near Lindemann's Saloon, one mile west OF Prices Inclined [MASK]-Speakers, q. T. Meng and W. Spangenberg.
+    (1880) A very dispersve medium, such as carbon disulphide, is enclosed between [MASK] parallel surfaces and the internal dispersion gives very fine spectrum.
+    (1870) connected [MASK] table sketch was made over TIE whole area, and perspective profile sketches, showing the characteristics of the slopes, and drainage sketches of water courses, canon and valley outlines.
+    (1890) that instead of saying that the satellites of Uranus partnke of Il retrograde motion in [MASK] inclined S2e 70 the ecliptic, it would be more proper to say that they move in a direct manner In a [MASK] in clined aS' to the eeliptic.
+
+Sense 2: level / levels / point
+  emerged: 1870   share of sample: 16%
+  context words: higher, high, man, people, life, men
+  examples:
+    (1870) Gauges were kept at Carrollton, Canal street, the mint, and at the United States Barracks, and all soundngs were reduced to the same [MASK] Of reference as that Of the Delta survey, and reads on the Carrollton gauge, 1870 the survey Is as follows: Fr
+    (1900) The Institution Is founded on the broadcast [MASK] of charity and human lty, and the undertaking should receiVe encouragement and cooperation such institutions have proven a great help in other communities in afford ing a means of giving help to that
+    (1860) Universal intelligence will produce universal justice; for the wise man knows that he cannot degrade his fellow MN without lowering the [MASK] Of his race.
+    (1890) Of Massa ohusetts, hardly reaches the intellectual [MASK] Of an earlier statesman flom the Northeast, whc once electrified Congress by saying OF New England, There she Is; look at her.
+    (1890) When we attain the position of statehood and become an integral of the national government, the partisan principles are clothed with more importance and enter upon [MASK] of usefulness that extends far beyond our local interests but as a territory th
+    (1870) The people feel kind ly toward the President and give him credit for rising above the heated [MASK] of Radical partisanShip and adopting principles | of action that conduce to peace and fraternity.
+
+Sense 3: level / ground / par
+  emerged: 1870   share of sample: 17%
+  context words: higher, high, inclined, place, people, men
+  examples:
+    (1890) It is pity that the contests cannot be conducted on the elevated [MASK] they once were.
+    (1890) To realize quietly the exceeding beauty of life as lived on the spiritual [MASK].
+    (1910) on a higher | [MASK] than 1t had ever been dreamed l of being before.
+    (1910) Uncle sam has taken the initial step in campaign to eliminate al ieged high pri es He is going to put wholesale and retail food dealers on 6 high patriotic [MASK] and give them an opportunity to go on record through the medium of the signed pledge ca
+    (1870) The best way to- escapo niiny difficulties which beset us on The lower [MASK], is to go up to a higher one.
+    (1900) There is no charge of personal i'm morality, but merely Of radical views He holds that comradeship should be the only tie between man and wife on the spiritual [MASK] and that where this does not exist separation should be made as simple as possible.
+
+Sense 4: isle / grove / guerre
+  emerged: 1890   share of sample: 4%
+  context words: belle, mrs, city, county, mimi, daily
+  examples:
+    (1890) In the town of Belle [MASK] the store and warehouse of Fred Schewe together with the post-office were destroyed by fire.
+    (1900) The body will be taken to Belle [MASK] Wednesday afternoon, and from there will be sent to livingston interment in the Petraneks cemetery near Irving.
+    (1900) No progress has yet been made towards paying for the water works and sewer bonds by Halsey & Co., although the decision Of the supreme court declaring the new law constitutional and the legality of the issue of 100000 bonds under that law by Belle [M
+    (1860) There is business man in Belle [MASK] who every i..tle while furnishes us new subscriber, by donating to a good customer a copy OF the Unon-lie thus benefits himself, his customer and us.
+    (1890) Billings of Belle [MASK] returned to his home yesterday after short business trip to this city.
+    (1880) Especial Correspondence of the Globe.l BELLE [MASK], April 92.-At an adjourned urday evening an attempt was made for high @<snse The council consists of FIVE mem
+
+Sense 5: force / aircraft / ambulance
+  emerged: 1910   share of sample: 7%
+  context words: aero, air, mono, today, aviator, new
+  examples:
+    (1900) The mono [MASK] is 52 feet across from tip to tip of It's wings.
+    (1910) Just when those at the field began tn fear that Kiel and Spatz had been forced to land the buzz Of an air [MASK] motor became audible and a motors was heard and Lieut.. Kfsi,s De Haviland four and Maj. Spatz's De Haviland Bluebird suddenly burst thro
+    (1910) 37; died of disease, g; died of acci- dent and other causes, 6; died of air [MASK] accident, wounded severely, AS; wounded, degree undetermine, 100; missing, 3.
+    (1900) July BY going to Fort Mycr repeatedly to "scc' the Wright brothers fly in their aero [MASK].
+    (1910) ; died of wounds, 27S; died of air [MASK] accident, 6; died of accident and 9TH er causes, 10; died of disease, 3S7; wounded severely, 100; wounded, degree undetermined, 229; wounded slightly, 179; missing in action, $50; in hands of enemy, s. Those 
+    (1910) from 200 to 800 week, it was announced today Nineteen of the twenty-one aircraft manufacturers of the country met here yesterday and formed the Air [MASK] Manufacturers association.

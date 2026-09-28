@@ -1,0 +1,57 @@
+'lobby': 5 senses (national sample of 7,000 uses)
+Label = BERT's most likely words for the masked slot in that sense's uses.
+
+Sense 1: vote / political / young
+  emerged: 1860   share of sample: 24%
+  context words: house, committee, members, washington, congress, senate
+  examples:
+    (1870) | While the people have nobody to <mask> !
+    (1860) Of <mask> no.oristy at Des Moines, are in tho ring.
+    (1880) pendent 10 10 and <mask> ios I. II itcemesr 1 viii do my part.
+    (1870) Spectators have ceased to take great inter est in the daily proceedings, and yesterday <mask> members looked and felt Indifferent.
+    (1870) Buist, n. Greenland, R. <mask>, Jr., Joseph Yates, q. E.. Trescot, e. b. KeIers.
+    (1860) AS far as the local interests of this county are concerned, we believe we have no pet schemes to <mask> through, or special ia yors to ask, as indeed we are not aware that any such have been for many years past, at least, solicited or granted.
+
+Sense 2: government / state / party
+  emerged: 1860   share of sample: 25%
+  context words: house, state, washington, members, congress, powerful
+  examples:
+    (1860) The <mask> was "sS~dsd with whites anu UIa.ks, " I,v uIaIIncst but little interest for the overthrow delegate.
+    (1870) For days the <mask> has been filed !
+    (1880) The <mask> Is becoming very heavy - the county division projects are getting under discussion, and the county officers interested In the various fee bills introduced are dock.
+    (1880) strikers wonder at the | When congress adjourned and financial en| barrassments arose ip Union Pacific quarters | the order came to Lincoln to reduce the | <mask>.
+    (1880) But the <mask> since the Democrats have controlled Congress is but Il small affair, without in fluence enough to be worth comparison with that of II few years ago, during the era of good stealing, when Garfield and Blaine and other Radical luminaries
+    (1910) Governor Cox's first bill was to abolisA the <mask> in the State House.
+
+Sense 3: room / hall / house
+  emerged: 1860   share of sample: 19%
+  context words: house, room, said, members, went, man
+  examples:
+    (1920) Patrons also have noted the addi- tional decorations in the <mask>.
+    (1880) The reporter thanked his inf ormant for the news so courteously accorded and passing into the <mask> without was soon one of host of interested spectators who were eagerly watching the movements Of one of the postal employees as he incribed the follo
+    (1900) The interior work in the <mask> is almos.
+    (1860) therefore Resolved, That New Castle 10 'e competed t. pay three -Ourths of the Stare az, hlS was a reflection on the great ak bill and a little ''rouqh" on the Irgal int.eman then sitting in the <mask> who receiy.
+    (1880) The business of taking the vote for United States senator occurred at noon and proceeded quietly in the presence of an attentive audience in the <mask> and gal Iery.
+    (1890) In the <mask> is stationed the Marine Band gorgeous in red and blue uniforms, which vie in brilliancy with the costumes of the diplomats hurrying to their places in the red parlor.
+
+Sense 4: room / company / hall
+  emerged: 1870   share of sample: 18%
+  context words: hotel, house, washington, railroad, senate, state
+  examples:
+    (1880) THIS is the first time he has been here since the adj journment of the legislature, but some how the Merchants <mask> looks famillar with Mr.. McCuSick's cleaning eye and long muStache in the midst.
+    (1890) confident that will reap my reward in the Great Beyond" And Mr.. Day repeated his observation concerning the non-residence of Popocrats There" sufting the words to a good old hymn tune and cavorting througm the Office <mask> in an ecstacy of glee.
+    (1860) He also says that Senator Grimes's private secretary wa gered large sums in the Senate <mask>, on Mon day, that Grimes would vote against all the
+    (1920) NEA Service writer wv ASHINGToN--One hears che w question raised, down "a the Senate <mask>.
+    (1900) the trolley <mask>.
+    (1910) Then it occurred to RE that l had neG'le to slap him on the back and 70 wiring his hand vigorously, making the hotel <mask> echo meanwhile with tle bnlsterou5 double narreilcl adjectives without which native Of these United States is likely to &c mis
+
+Sense 5: basement / chamber / middle
+  emerged: 1880   share of sample: 14%
+  context words: hotel, house, day, new, night, men
+  examples:
+    (1880) "The biggest wheel in the world" was rolled into the <mask> of an uptown no tel "A few nights ago.
+    (1910) COnspicuously displayed in the <mask> OF the hotels is this no tice: "The hotels and merchants Of Springfield are united in friendly endeavcr to mako our city the most popular in New England as a place for travelling men 10 stay in over Sun.
+    (1890) You might imagine yourself to be in a depot or in the <mask> Of q sec | ond class hotel.
+    (1900) Judging from the appearance OF the Sictures in the <mask> of the Auditorium Or the vaudeville bill at that popular playhouse this week, there will be Nenty of fun IN the show.
+    (1900) Senator Clark ran painting into the <mask> of the Florence hotel, and dehanded protection.
+    (1900) r. are two Lafayette vases, which are shown in the <mask> of Chase's Theatre.

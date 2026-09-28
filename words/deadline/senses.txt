@@ -1,0 +1,57 @@
+'deadline': 5 senses (national sample of 2,196 uses)
+Label = BERT's most likely words for the masked slot in that sense's uses.
+
+Sense 1: attention / line / lot
+  emerged: never reaches 3%   share of sample: 5%
+  context words: drawn, youth, religious, institution, young, local
+  examples:
+    (1920) He has great responsibility and q great opportunity to clean UP in a way that will draw <mask> for the baseball underworld for a generation to come.-Ex.
+    (1910) to be sure IL Bavarian and probably in the seore recesses of his soul loves the Prlssiar bureaucrats az ferventy az a cat loves a cold water bath; but he lives and move, and has his occupation in Berlin when h, is at home and doubtless he wishes TO u
+    (1900) local religious Institution which Is for young wor,en- has drawn the <mask> OF youth AZ is Every woman over that age Tiii be marked q and requested to skiddoos This is painful II Is unkind.
+    (1910) Fifty y-seven years old yesterday, President Wilson is a very good ex- ample of the progressive American who sets no limit to his activities nor draws a <mask> of life The years behind him spent in useful pursuits and those ahead of him full of prom 
+    (1900) Where Is the <mask> of decorum to be drawn?
+    (1900) Where is the <mask> of decorum to be drawn?
+
+Sense 2: line / river / border
+  emerged: 1900   share of sample: 22%
+  context words: frank, mayo, old, crossed, know, time
+  examples:
+    (1910) that o. Henry would care to receive the eager visitor before they would permit him to pass the <mask>.
+    (1910) or great urds rlying strength In showing ability to rise from the <mask> Generally speaking, however.
+    (1920) So you may know that Bedient was an old hand, old enough to have a Just right 10 the gray in his hair, when tell you that no one in the "Graphics'sJ composing room had a cleaner score OF errors at the end Of a days work and that no one was farther be
+    (1910) Few Have Crossed River Thus far nothing beyond battalions have crossed the river, and no brigade much less division, has passed the <mask>.
+    (1900) Since G. BIS have became so common thing, we notice some of our fellow-reporters are falling behind the <mask>, especially the author of the Oak Grove Overtures.
+    (1900) 1t is the Secretary's idea that these regulations will not only prove sufficient to out line the course of conduct to be pursued by employees of the Agricultural Depart ment, SO that punishment may be provided for transgressions but will, as Mr.. Wil
+
+Sense 3: line / limit / camp
+  emerged: 1900   share of sample: 32%
+  context words: established, new, drawn, police, street, men
+  examples:
+    (1910) There was <mask> beyond which they could not pass.
+    (1900) From all accounts the factional <mask> which nearly caused the death of the club has been obliterated Mr.. A. G. Cavins, mittee deiivered the address CIV Of Welcome at the banquet, and Mr.. George o. Dix was POSTMASTER.
+    (1910) In inst the same wey there is a moral <mask> beyond which We can't pass without losing the better life.
+    (1920) the nolar <mask> extends from the 18th degree north ward.
+    (1920) A police <mask>, bounded by Missouri, New York.
+    (1920) New York, Aug. 1o.-Two bandits ignoring the traditional <mask> es- tablished by the police on lower Manhattan invaded Maiden Lane in the heart of the.
+
+Sense 4: code / press / midnight
+  emerged: 1910   share of sample: 22%
+  context words: corinne, griffith, moral, club, newspaper, collateral
+  examples:
+    (1910) the .<mask>" beyond which United States army officers are not permitted to pass.
+    (1910) Large numbers Of secret service men, attired In soldier garb, Wis tied the "<mask>' OK Seattle and made detailed reports.
+    (1920) Call this date the "<mask>.r Revise all the ma tcrial before you go TO press.
+    (1910) in The Moral <mask>"; Thursday, Pauline Frederick, in "The Woman on | the Index: Friday, Norma Talmadge, in The Probation Wife," and Saturday, Mabel Nornand.
+    (1920) He made what was his third appearance in Washington, but his first III solo recital and his only one listed for the current season, at Polls Theater yes terday afternoon before an enthusiastic audience, which stayed considerably after the "<mask>" of
+    (1910) June Elvidge in 1.-The Moral <mask>": Sat urday.
+
+Sense 5: date / time / day
+  emerged: 1920   share of sample: 19%
+  context words: set, tax, midnight, new, march, today
+  examples:
+    (1920) The <mask> is 10 a. m, Saturday when Len Ormsby's starting pistol will go "wham," and The Lights scooter and pushmobile races will begin at Lions Field, Breckenridge Park.
+    (1920) THE <mask> FOR CLASS IFIED ADVERTISING FOR THE ATE NOON EDITION OF THE NEWS.
+    (1920) THE <mask> FOR CLASS IFIED ADVERTISING FOR THE AFT NOON EDITION or THE NEWS.
+    (1920) Rules For Test Remember the <mask> for this weeks ads come at midnight tomorrow night.
+    (1910) Two dollars is fixed as the <mask> on mems shirts.
+    (1920) the ruling was made that 200 gallons would be taken as the <mask> The man who had made that much liquor or less would be sup posed to have made it for his own family.
